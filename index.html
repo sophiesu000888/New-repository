@@ -9,90 +9,104 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root {
-  --bg: #f5f6f8;
-  --bg2: #ffffff;
-  --bg3: #f0f2f5;
-  --border: rgba(0,0,0,0.07);
-  --border2: rgba(0,0,0,0.13);
-  --text: #1a1d24;
-  --text2: #5a5f70;
-  --text3: #9fa5b5;
-  --accent: #2563eb;
-  --accent-dim: #eff4ff;
-  --accent-border: #bfcfff;
-  --green: #16a34a;
-  --green-dim: #f0fdf4;
-  --green-border: #bbf7d0;
-  --amber: #b45309;
-  --amber-dim: #fffbeb;
-  --amber-border: #fde68a;
-  --red: #dc2626;
-  --red-dim: #fef2f2;
-  --red-border: #fecaca;
-  --radius: 14px;
-  --radius-sm: 9px;
-  --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05);
+:root{
+  --bg:#f5f6f8;--bg2:#ffffff;--bg3:#f0f2f5;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+  --text:#1a1d24;--text2:#5a5f70;--text3:#9fa5b5;
+  --accent:#2563eb;--accent-dim:#eff4ff;--accent-border:#bfcfff;
+  --green:#16a34a;--green-dim:#f0fdf4;--green-border:#bbf7d0;
+  --amber:#b45309;--amber-dim:#fffbeb;--amber-border:#fde68a;
+  --red:#dc2626;--red-dim:#fef2f2;--red-border:#fecaca;
+  --radius:14px;--radius-sm:9px;
+  --shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.05);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;overflow-x:hidden}
 
-.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:18px 16px 14px;position:sticky;top:0;z-index:10;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
-.header-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.header-name{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-0.01em;line-height:1.15}
-.header-company{font-size:15px;font-weight:500;color:var(--text2);margin-top:3px}
-.month-nav{display:flex;align-items:center;gap:6px;margin-top:6px}
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 16px 12px;position:sticky;top:0;z-index:20;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.header-left .header-name{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.01em;line-height:1.2}
+.header-left .header-company{font-size:13px;font-weight:500;color:var(--text2);margin-top:2px}
+.month-nav{display:flex;align-items:center;gap:6px}
 .month-nav button{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);width:34px;height:34px;border-radius:9px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .month-nav button:active{background:var(--accent-dim);border-color:var(--accent-border)}
 .month-label{font-size:15px;font-weight:700;min-width:68px;text-align:center;font-family:'DM Mono',monospace;color:var(--text)}
 
-.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 12px 6px}
-.stat-card{background:var(--bg2);border-radius:var(--radius);padding:13px 15px;box-shadow:var(--shadow)}
-.stat-label{font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.04em;text-transform:uppercase;font-weight:500}
-.stat-val{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
+/* SUMMARY GRID — 2×3 */
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 12px 4px}
+.stat-card{background:var(--bg2);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat-card.clickable{cursor:pointer}
+.stat-card.clickable:active{opacity:0.8}
+.stat-card.full{grid-column:1/-1}
+.stat-card.salary-card{background:linear-gradient(135deg,#1e40af 0%,#2563eb 100%)}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px;letter-spacing:0.04em;text-transform:uppercase;font-weight:500;display:flex;align-items:center;gap:4px}
+.stat-label .tap-hint{font-size:9px;background:rgba(0,0,0,0.08);border-radius:4px;padding:1px 5px;color:var(--text3)}
+.stat-label .tap-hint-white{font-size:9px;background:rgba(255,255,255,0.2);border-radius:4px;padding:1px 5px;color:rgba(255,255,255,0.8)}
+.stat-val{font-size:21px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
 .stat-val.c-accent{color:var(--accent)}
 .stat-val.c-green{color:var(--green)}
 .stat-val.c-amber{color:var(--amber)}
+.stat-val.c-white{color:#fff;font-size:24px}
 
-.toolbar{display:flex;gap:8px;padding:6px 12px 8px;overflow-x:auto}
+/* SALARY POPUP */
+.salary-popup{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:90;display:flex;align-items:center;justify-content:center;padding:24px}
+.salary-popup.hidden{display:none}
+.salary-box{background:#fff;border-radius:20px;padding:28px 24px 22px;max-width:300px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.22);text-align:center}
+.salary-box h3{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:18px}
+.salary-breakdown{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.sb-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;background:var(--bg3)}
+.sb-lbl{font-size:13px;color:var(--text2)}
+.sb-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
+.sb-total{background:var(--accent-dim);border:1px solid var(--accent-border)}
+.sb-total .sb-lbl{color:var(--accent);font-weight:600}
+.sb-total .sb-val{color:var(--accent);font-size:20px}
+.salary-close{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:10px 28px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+
+/* SAVE STATUS */
+.save-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;transition:opacity 0.3s;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;opacity:0}
+.save-status.show{opacity:1}
+.save-status.saved{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.save-status.saving{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;padding:4px 12px 8px;overflow-x:auto}
 .toolbar::-webkit-scrollbar{display:none}
-.tool-btn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif}
+.tool-btn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:9px 15px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif}
 .tool-btn:active{opacity:0.75}
 .tool-btn-export{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
 .tool-btn-clear{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
 
-.days-list{padding:6px 12px 90px;display:flex;flex-direction:column;gap:8px}
-
+/* DAYS */
+.days-list{padding:4px 12px 90px;display:flex;flex-direction:column;gap:8px}
 .day-card{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
 .day-card.is-weekend{border-left:3px solid var(--accent-border)}
 .day-card.is-today{border-left:3px solid var(--accent)}
 .day-card.is-holiday{opacity:0.55}
-
-.day-header{display:flex;align-items:center;gap:8px;padding:11px 13px;cursor:pointer;user-select:none}
-.day-date{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:56px;color:var(--text)}
-.day-weekday{font-size:12px;color:var(--text3);min-width:16px}
+.day-header{display:flex;align-items:center;gap:8px;padding:10px 13px;cursor:pointer;user-select:none}
+.day-date{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;min-width:52px;color:var(--text)}
+.day-weekday{font-size:12px;color:var(--text3);min-width:14px}
 .is-weekend .day-weekday{color:var(--accent)}
 .day-times{display:flex;gap:6px;align-items:center;flex:1}
-.time-chip{font-size:12px;font-family:'DM Mono',monospace;color:var(--text2);background:var(--bg3);padding:3px 8px;border-radius:6px}
+.time-chip{font-size:12px;font-family:'DM Mono',monospace;color:var(--text2);background:var(--bg3);padding:3px 7px;border-radius:6px}
 .time-chip.ot{color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border)}
 .arrow{font-size:10px;color:var(--text3)}
 .day-pay{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent);margin-left:auto;white-space:nowrap}
 .day-pay.zero{color:var(--text3);font-weight:400}
-.holiday-badge{font-size:11px;background:var(--red-dim);color:var(--red);padding:3px 9px;border-radius:6px;margin-left:auto;border:1px solid var(--red-border)}
+.holiday-badge{font-size:11px;background:var(--red-dim);color:var(--red);padding:3px 8px;border-radius:6px;margin-left:auto;border:1px solid var(--red-border)}
 .chevron{font-size:12px;color:var(--text3);margin-left:4px;transition:transform 0.2s;display:inline-block}
 .chevron.open{transform:rotate(180deg)}
-
-.day-summary-line{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:5px 13px 9px}
+.day-summary-line{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:4px 13px 9px}
 .dsb{font-size:11px;color:var(--text3)}
 .dsb span{color:var(--text2);font-weight:500}
-
-.day-body{border-top:1px solid var(--border);padding:12px 13px;display:flex;flex-direction:column;gap:11px}
+.day-body{border-top:1px solid var(--border);padding:12px 13px;display:flex;flex-direction:column;gap:10px}
 .field-row{display:flex;align-items:center;gap:8px}
 .field-label{font-size:12px;color:var(--text3);min-width:52px;font-weight:500}
-.field-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:15px;font-family:'DM Mono',monospace;padding:10px 12px;outline:none;-webkit-appearance:none;min-width:0}
+.field-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:15px;font-family:'DM Mono',monospace;padding:9px 11px;outline:none;-webkit-appearance:none;min-width:0}
 .field-input:focus{border-color:var(--accent);background:#fff}
 
-.btn{border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;padding:10px 15px;white-space:nowrap;font-family:'Noto Sans TC',sans-serif}
+/* BUTTONS */
+.btn{border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;padding:10px 14px;white-space:nowrap;font-family:'Noto Sans TC',sans-serif}
 .btn:active{opacity:0.7}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-success{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
@@ -100,16 +114,31 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
 .btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
 
+/* BADGES */
 .badge-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.badge-item{display:flex;align-items:center;gap:5px}
+.badge-item{display:flex;align-items:center;gap:4px}
 .badge-lbl{font-size:11px;color:var(--text3)}
-.badge{font-size:12px;font-weight:700;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px}
+.badge{font-size:12px;font-weight:700;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:20px}
 .badge-blue{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border)}
 .badge-green{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
-
 .locked-row{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
 .locked-text{font-size:13px;font-family:'DM Mono',monospace;color:var(--text2);word-break:break-all;flex:1}
 
+/* METER KEYPAD */
+.meter-section{display:flex;flex-direction:column;gap:8px}
+.meter-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
+.meter-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);border-radius:20px;padding:4px 9px;font-size:13px;font-family:'DM Mono',monospace;font-weight:600}
+.meter-chip-del{background:none;border:none;color:var(--accent);cursor:pointer;font-size:15px;padding:0;line-height:1;font-weight:700;opacity:0.7}
+.kp-current{background:var(--bg2);border:1.5px dashed var(--accent-border);border-radius:8px;padding:8px 12px;font-size:20px;font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;text-align:center;min-height:44px;letter-spacing:0.05em}
+.kp-current.empty{color:var(--text3);font-size:13px;font-weight:400;display:flex;align-items:center;justify-content:center}
+.meter-keypad{background:var(--bg3);border-radius:var(--radius-sm);padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.kp-btn{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:14px 6px;font-size:18px;font-family:'DM Mono',monospace;font-weight:500;color:var(--text);cursor:pointer;text-align:center;transition:background 0.08s;user-select:none}
+.kp-btn:active{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent)}
+.kp-btn.kp-back{color:var(--amber);font-size:16px}
+.kp-btn.kp-add{background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-color:var(--accent);grid-column:1/-1}
+.kp-btn.kp-add:active{background:#1d4ed8}
+
+/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.hidden{display:none}
 .modal{background:var(--bg2);border-radius:18px;padding:26px 22px 20px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
@@ -118,13 +147,51 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .modal p{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:22px}
 .modal-actions{display:flex;gap:10px}
 .modal-actions .btn{flex:1;text-align:center}
+
+/* DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:40;display:none}
+.drawer-overlay.open{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(94vw,420px);background:var(--bg2);z-index:50;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);box-shadow:-4px 0 24px rgba(0,0,0,0.14)}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:16px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.drawer-title{font-size:17px;font-weight:700;flex:1;color:var(--text)}
+.drawer-close{background:var(--bg3);border:1px solid var(--border2);width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.drawer-filters{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;background:var(--bg)}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-label{font-size:12px;color:var(--text3);min-width:32px;font-weight:500}
+.drawer-month-nav{display:flex;align-items:center;gap:5px}
+.drawer-month-nav button{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);width:28px;height:28px;border-radius:7px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.drawer-month-label{font-size:13px;font-weight:700;min-width:60px;text-align:center;font-family:'DM Mono',monospace;color:var(--text)}
+.date-range{display:flex;align-items:center;gap:6px;flex:1}
+.date-input{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:6px 8px;font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none;width:76px}
+.date-input:focus{border-color:var(--accent)}
+.filter-clear{background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;padding:4px 6px;border-radius:5px;font-family:'Noto Sans TC',sans-serif}
+.filter-clear:active{background:var(--bg3)}
+.drawer-body{flex:1;overflow-y:auto;padding:8px 14px 16px}
+.drawer-body::-webkit-scrollbar{width:3px}
+.drawer-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.drawer-empty{text-align:center;color:var(--text3);font-size:14px;padding:40px 20px}
+.drawer-total-bar{padding:10px 14px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dtb-item{font-size:12px;color:var(--text2)}
+.dtb-item span{font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
+.dtb-filter-note{font-size:10px;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:10px;border:1px solid var(--accent-border)}
+
+/* Detail rows */
+.detail-row{background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.detail-date{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);min-width:44px}
+.detail-wd{font-size:11px;color:var(--text3);min-width:12px}
+.detail-time{font-size:12px;font-family:'DM Mono',monospace;color:var(--text3)}
+.detail-ot-hrs{font-size:13px;font-family:'DM Mono',monospace;color:var(--accent);flex:1}
+.detail-pay{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:var(--green)}
+.detail-total{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:var(--amber)}
+.detail-work{font-size:12px;font-family:'DM Mono',monospace;color:var(--text2)}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-inner">
-    <div>
+    <div class="header-left">
       <div class="header-name">Kengle Chu</div>
       <div class="header-company">毅合實業工作紀錄</div>
     </div>
@@ -136,11 +203,35 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
   </div>
 </div>
 
+<!-- SUMMARY: 2-col grid, salary full-width on top -->
 <div class="summary">
-  <div class="stat-card"><div class="stat-label">本月加班費</div><div class="stat-val c-accent" id="sumPay">$0</div></div>
-  <div class="stat-card"><div class="stat-label">加班時數</div><div class="stat-val" id="sumHours">0h 0m</div></div>
-  <div class="stat-card"><div class="stat-label">總趟次</div><div class="stat-val c-green" id="sumTrips">0</div></div>
-  <div class="stat-card"><div class="stat-label">總米數</div><div class="stat-val c-amber" id="sumMeters">0</div></div>
+  <!-- 本月加班費 → 點擊顯示薪資彈窗 -->
+  <div class="stat-card salary-card full clickable" id="cardSalary">
+    <div class="stat-label" style="color:rgba(255,255,255,0.7)">本月薪資
+      <span class="tap-hint-white">點擊查看明細</span>
+    </div>
+    <div class="stat-val c-white" id="sumSalary">$36,000</div>
+  </div>
+  <!-- 本月加班費 -->
+  <div class="stat-card">
+    <div class="stat-label">本月加班費</div>
+    <div class="stat-val c-accent" id="sumPay">$0</div>
+  </div>
+  <!-- 加班時數 → 點擊開加班抽屜 -->
+  <div class="stat-card clickable" id="cardHours">
+    <div class="stat-label">加班時數 <span class="tap-hint">▸ 明細</span></div>
+    <div class="stat-val c-accent" id="sumHours">0h 0m</div>
+  </div>
+  <!-- 總趟次 -->
+  <div class="stat-card">
+    <div class="stat-label">總趟次</div>
+    <div class="stat-val c-green" id="sumTrips">0</div>
+  </div>
+  <!-- 總米數 → 點擊開米數抽屜 -->
+  <div class="stat-card clickable" id="cardMeters">
+    <div class="stat-label">總米數 <span class="tap-hint">▸ 明細</span></div>
+    <div class="stat-val c-amber" id="sumMeters">0</div>
+  </div>
 </div>
 
 <div class="toolbar">
@@ -150,6 +241,23 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 
 <div class="days-list" id="daysList"></div>
 
+<!-- Save status toast -->
+<div class="save-status" id="saveStatus">✓ 已儲存</div>
+
+<!-- Salary popup -->
+<div class="salary-popup hidden" id="salaryPopup">
+  <div class="salary-box">
+    <h3>本月薪資明細</h3>
+    <div class="salary-breakdown">
+      <div class="sb-row"><span class="sb-lbl">底薪</span><span class="sb-val">$36,000</span></div>
+      <div class="sb-row"><span class="sb-lbl">加班費</span><span class="sb-val" id="popupOT">$0</span></div>
+      <div class="sb-row sb-total"><span class="sb-lbl">合計薪資</span><span class="sb-val" id="popupTotal">$36,000</span></div>
+    </div>
+    <button class="salary-close" id="salaryClose">關閉</button>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
 <div class="modal-overlay hidden" id="confirmModal">
   <div class="modal">
     <div class="modal-icon">⚠️</div>
@@ -157,21 +265,98 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
     <p id="modalDesc"></p>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="modalCancel">取消</button>
-      <button class="btn btn-danger" id="modalConfirm">確認清除</button>
+      <button class="btn btn-danger" id="modalConfirm">確認</button>
     </div>
   </div>
 </div>
 
-<script>
-const STORE_KEY='kengle_data_v2';
-const WD=['日','一','二','三','四','五','六'];
+<!-- OT Drawer -->
+<div class="drawer-overlay" id="otOverlay"></div>
+<div class="drawer" id="otDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">⏰ 加班明細</div>
+    <button class="drawer-close" id="otDrawerClose">✕</button>
+  </div>
+  <div class="drawer-filters">
+    <div class="filter-row">
+      <span class="filter-label">月份</span>
+      <div class="drawer-month-nav">
+        <button id="otMonthPrev">‹</button>
+        <div class="drawer-month-label" id="otMonthLabel"></div>
+        <button id="otMonthNext">›</button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">日期</span>
+      <div class="date-range">
+        <input type="number" class="date-input" id="otDateFrom" placeholder="起 (日)" min="1" max="31">
+        <span style="color:var(--text3);font-size:12px">—</span>
+        <input type="number" class="date-input" id="otDateTo" placeholder="迄 (日)" min="1" max="31">
+      </div>
+      <button class="filter-clear" id="otDateClear">清除</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="otDrawerBody"></div>
+  <div class="drawer-total-bar" id="otTotalBar"></div>
+</div>
 
+<!-- Meter Drawer -->
+<div class="drawer-overlay" id="mOverlay"></div>
+<div class="drawer" id="mDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">📏 米數明細</div>
+    <button class="drawer-close" id="mDrawerClose">✕</button>
+  </div>
+  <div class="drawer-filters">
+    <div class="filter-row">
+      <span class="filter-label">月份</span>
+      <div class="drawer-month-nav">
+        <button id="mMonthPrev">‹</button>
+        <div class="drawer-month-label" id="mMonthLabel"></div>
+        <button id="mMonthNext">›</button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">日期</span>
+      <div class="date-range">
+        <input type="number" class="date-input" id="mDateFrom" placeholder="起 (日)" min="1" max="31">
+        <span style="color:var(--text3);font-size:12px">—</span>
+        <input type="number" class="date-input" id="mDateTo" placeholder="迄 (日)" min="1" max="31">
+      </div>
+      <button class="filter-clear" id="mDateClear">清除</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="mDrawerBody"></div>
+  <div class="drawer-total-bar" id="mTotalBar"></div>
+</div>
+
+<script>
+const STORE_KEY='kengle_data_v3';
+const WD=['日','一','二','三','四','五','六'];
+const BASE_SALARY=36000;
+
+// ── STORAGE ──────────────────────────────────────────────
 function load(){try{return JSON.parse(localStorage.getItem(STORE_KEY))||{};}catch(e){return {};}}
-function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(allData));}catch(e){}}
+let saveTimer=null;
+function save(){
+  showSaveStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(allData));}catch(e){}
+    showSaveStatus('saved');
+  },400);
+}
+function showSaveStatus(s){
+  const el=document.getElementById('saveStatus');
+  el.className='save-status '+s+' show';
+  el.textContent=s==='saving'?'儲存中…':'✓ 已儲存';
+  if(s==='saved') setTimeout(()=>el.classList.remove('show'),1800);
+}
 
 let allData=load();
 let viewYear,viewMonth;
 
+// ── HELPERS ──────────────────────────────────────────────
 function monthKey(y,m){return `${y}_${String(m+1).padStart(2,'0')}`;}
 
 function getRows(y,m){
@@ -182,10 +367,16 @@ function getRows(y,m){
     const dt=new Date(y,m,d);
     if(dt.getMonth()!==m) break;
     const dk=String(d);
-    if(!allData[mk][dk]) allData[mk][dk]={holiday:false,otInput:'',endTime:'17:00',metersInput:'',metersLocked:false,expanded:false};
+    if(!allData[mk][dk]) allData[mk][dk]={holiday:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:false};
+    if(!allData[mk][dk].metersArr) allData[mk][dk].metersArr=parseMeters(allData[mk][dk].metersInput||'');
     rows.push({d,dt,wd:dt.getDay(),isWeekend:dt.getDay()===0||dt.getDay()===6,dk,data:allData[mk][dk]});
   }
   return rows;
+}
+
+function parseMeters(str){
+  if(!str||!str.trim()) return [];
+  return str.trim().split(/[\s,]+/).filter(v=>v!=='').map(v=>parseFloat(v)||0).filter(v=>v>0);
 }
 
 function calcPay(h,m){
@@ -199,7 +390,15 @@ function calcPay(h,m){
   return Math.round(t);
 }
 
-function sumNums(str){const n=str.trim().split(/\s+/).filter(v=>v!=='').map(v=>parseFloat(v)||0);return{count:n.length,total:n.reduce((a,b)=>a+b,0)};}
+function arrStats(arr){
+  const a=arr||[];
+  return{count:a.length,total:a.reduce((s,v)=>s+v,0)};
+}
+
+function fmtNum(n){
+  if(Number.isInteger(n)) return String(n);
+  return parseFloat(n.toFixed(3)).toString();
+}
 
 function parseFmtTime(raw){
   const s=raw.replace(/[^0-9]/g,'');
@@ -214,22 +413,34 @@ function parseFmtTime(raw){
 
 function nowStr(){const n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');}
 function fmtDate(dt){return `${dt.getMonth()+1}/${String(dt.getDate()).padStart(2,'0')}`;}
+function syncMetersInput(d){d.metersInput=(d.metersArr||[]).join(' ');}
 
+// ── SUMMARY ──────────────────────────────────────────────
 function updateSummary(rows){
   let tpay=0,totMin=0,ttrips=0,tmeters=0;
   rows.forEach(r=>{
     if(r.data.holiday) return;
     const[eh,em]=r.data.endTime.split(':').map(Number);
-    tpay+=calcPay(eh,em);totMin+=Math.max(0,eh*60+em-17*60);
-    const res=sumNums(r.data.metersInput);
+    tpay+=calcPay(eh,em);
+    totMin+=Math.max(0,eh*60+em-17*60);
+    const res=arrStats(r.data.metersArr);
     ttrips+=res.count;tmeters+=res.total;
   });
   document.getElementById('sumPay').textContent='$'+tpay.toLocaleString();
+  document.getElementById('sumSalary').textContent='$'+(BASE_SALARY+tpay).toLocaleString();
   document.getElementById('sumHours').textContent=Math.floor(totMin/60)+'h '+(totMin%60)+'m';
   document.getElementById('sumTrips').textContent=ttrips;
-  document.getElementById('sumMeters').textContent=tmeters.toLocaleString()+' m';
+  document.getElementById('sumMeters').textContent=fmtNum(tmeters)+' m';
+  // keep popup data in sync
+  document.getElementById('popupOT').textContent='$'+tpay.toLocaleString();
+  document.getElementById('popupTotal').textContent='$'+(BASE_SALARY+tpay).toLocaleString();
 }
 
+// ── KEYPAD STATE ──────────────────────────────────────────
+const kpState={};
+function kpKey(dk,mk){return mk+'_'+dk;}
+
+// ── RENDER ────────────────────────────────────────────────
 function renderAll(){
   const now=new Date();
   const todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
@@ -238,20 +449,21 @@ function renderAll(){
   updateSummary(rows);
   const list=document.getElementById('daysList');
   list.innerHTML='';
+  const mk=monthKey(viewYear,viewMonth);
 
   rows.forEach(r=>{
     const isToday=viewYear===todayY&&viewMonth===todayM&&r.d===todayD;
     const d=r.data;
     const payVal=d.holiday?0:(()=>{const[h,m]=d.endTime.split(':').map(Number);return calcPay(h,m);})();
-    const mRes=sumNums(d.metersInput);
+    const mRes=arrStats(d.metersArr);
+    const kpk=kpKey(r.dk,mk);
+    if(!kpState[kpk]) kpState[kpk]={current:''};
 
     const card=document.createElement('div');
     card.className='day-card'+(r.isWeekend?' is-weekend':'')+(d.holiday?' is-holiday':'')+(isToday?' is-today':'');
 
     // HEADER
-    const hdr=document.createElement('div');
-    hdr.className='day-header';
-
+    const hdr=document.createElement('div');hdr.className='day-header';
     const dateEl=document.createElement('div');dateEl.className='day-date';dateEl.textContent=fmtDate(r.dt);
     const wdEl=document.createElement('div');wdEl.className='day-weekday';wdEl.textContent=WD[r.wd];
     hdr.appendChild(dateEl);hdr.appendChild(wdEl);
@@ -262,19 +474,21 @@ function renderAll(){
       const times=document.createElement('div');times.className='day-times';
       const c1=document.createElement('span');c1.className='time-chip';c1.textContent='08:00';
       const arr=document.createElement('span');arr.className='arrow';arr.textContent='→';
-      const c2=document.createElement('span');c2.className='time-chip'+(d.endTime!=='17:00'?' ot':'');c2.textContent=d.endTime;
+      const c2=document.createElement('span');c2.className='time-chip'+(d.endTime!=='17:00'?' ot':'');
+      c2.textContent=(d.timeLocked?'🔒 ':'')+d.endTime;
       times.appendChild(c1);times.appendChild(arr);times.appendChild(c2);hdr.appendChild(times);
-      const payEl=document.createElement('div');payEl.className='day-pay'+(payVal===0?' zero':'');payEl.textContent=payVal>0?'$'+payVal.toLocaleString():'—';hdr.appendChild(payEl);
+      const payEl=document.createElement('div');payEl.className='day-pay'+(payVal===0?' zero':'');
+      payEl.textContent=payVal>0?'$'+payVal.toLocaleString():'—';hdr.appendChild(payEl);
     }
 
     const chev=document.createElement('span');chev.className='chevron'+(d.expanded?' open':'');chev.textContent='▾';hdr.appendChild(chev);
     hdr.addEventListener('click',()=>{d.expanded=!d.expanded;save();renderAll();});
     card.appendChild(hdr);
 
-    // Collapsed summary
+    // collapsed summary
     if(!d.expanded&&!d.holiday&&mRes.count>0){
       const sl=document.createElement('div');sl.className='day-summary-line';
-      sl.innerHTML=`<span class="dsb">趟次 <span>${mRes.count}</span></span><span class="dsb">米數 <span>${mRes.total.toLocaleString()} m</span></span>${d.metersLocked?'<span class="badge badge-green" style="font-size:10px;padding:2px 7px">已確認</span>':''}`;
+      sl.innerHTML=`<span class="dsb">趟次 <span>${mRes.count}</span></span><span class="dsb">米數 <span>${fmtNum(mRes.total)} m</span></span>${d.metersLocked?'<span class="badge badge-green" style="font-size:10px;padding:2px 7px">已確認</span>':''}`;
       card.appendChild(sl);
     }
 
@@ -287,49 +501,128 @@ function renderAll(){
         btn.addEventListener('click',()=>{d.holiday=false;d.expanded=true;save();renderAll();});
         body.appendChild(btn);
       } else {
-        // Clock-out row
+        // ── Clock-out row ──
         const otRow=document.createElement('div');otRow.className='field-row';
         const otLbl=document.createElement('div');otLbl.className='field-label';otLbl.textContent='下班時間';
-        const otInp=document.createElement('input');otInp.type='text';otInp.inputMode='numeric';
-        otInp.className='field-input';otInp.placeholder='2100';otInp.value=d.otInput;
-        otInp.addEventListener('input',()=>{d.otInput=otInp.value;save();});
-        const otBtn=document.createElement('button');otBtn.className='btn btn-primary';otBtn.textContent='下班';
-        otBtn.addEventListener('click',()=>{
-          const raw=otInp.value.trim();
-          const t=raw===''?nowStr():parseFmtTime(raw);
-          if(!t){otInp.style.borderColor='var(--red)';setTimeout(()=>otInp.style.borderColor='',1200);return;}
-          d.endTime=t;d.otInput=raw;save();renderAll();
-        });
-        otRow.appendChild(otLbl);otRow.appendChild(otInp);otRow.appendChild(otBtn);
+
+        if(d.timeLocked){
+          const ld=document.createElement('div');ld.className='locked-row';
+          const lt=document.createElement('span');lt.className='locked-text';lt.textContent=d.endTime;
+          const editBtn=document.createElement('button');editBtn.className='btn btn-warning';editBtn.textContent='修改';
+          editBtn.addEventListener('click',()=>{
+            showModal('確認修改下班時間？',`目前記錄為 ${d.endTime}，確定要重新修改嗎？`,()=>{d.timeLocked=false;save();renderAll();});
+          });
+          ld.appendChild(lt);ld.appendChild(editBtn);
+          otRow.appendChild(otLbl);otRow.appendChild(ld);
+        } else {
+          const otInp=document.createElement('input');otInp.type='text';otInp.inputMode='numeric';
+          otInp.className='field-input';otInp.placeholder='';otInp.value=d.otInput;
+          otInp.addEventListener('input',()=>{d.otInput=otInp.value;save();});
+          const btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;gap:6px;flex-shrink:0';
+          const noOtBtn=document.createElement('button');noOtBtn.className='btn btn-ghost';noOtBtn.textContent='無加班';noOtBtn.style.cssText='font-size:12px;padding:10px 10px';
+          noOtBtn.addEventListener('click',()=>{
+            const doIt=()=>{d.endTime='17:00';d.otInput='';d.timeLocked=true;save();renderAll();};
+            if(d.timeLocked) showModal('確認覆蓋下班時間？',`目前記錄為 ${d.endTime}，確定要改為無加班 (17:00) 嗎？`,doIt);else doIt();
+          });
+          const otBtn=document.createElement('button');otBtn.className='btn btn-primary';otBtn.textContent='加班';otBtn.style.cssText='font-size:12px;padding:10px 10px';
+          otBtn.addEventListener('click',()=>{
+            const raw=otInp.value.trim();
+            const t=raw===''?nowStr():parseFmtTime(raw);
+            if(!t){otInp.style.borderColor='var(--red)';setTimeout(()=>otInp.style.borderColor='',1200);return;}
+            const doIt=()=>{d.endTime=t;d.otInput=raw;d.timeLocked=true;save();renderAll();};
+            if(d.timeLocked) showModal('確認覆蓋下班時間？',`目前記錄為 ${d.endTime}，確定要改為 ${t} 嗎？`,doIt);else doIt();
+          });
+          btnWrap.appendChild(noOtBtn);btnWrap.appendChild(otBtn);
+          otRow.appendChild(otLbl);otRow.appendChild(otInp);otRow.appendChild(btnWrap);
+        }
         body.appendChild(otRow);
 
-        // Meters row
-        const mRow=document.createElement('div');mRow.className='field-row';
-        const mLbl=document.createElement('div');mLbl.className='field-label';mLbl.textContent='米數';
+        // ── Meters section ──
+        const mSec=document.createElement('div');mSec.className='meter-section';
+        const mHdr=document.createElement('div');mHdr.style.cssText='display:flex;align-items:center;gap:8px';
+        const mLbl=document.createElement('div');mLbl.className='field-label';mLbl.textContent='米數';mHdr.appendChild(mLbl);
 
         if(d.metersLocked){
           const ld=document.createElement('div');ld.className='locked-row';
-          const lt=document.createElement('span');lt.className='locked-text';lt.textContent=d.metersInput||'—';
-          const editBtn=document.createElement('button');editBtn.className='btn btn-warning';editBtn.textContent='修改';
-          editBtn.addEventListener('click',()=>{d.metersLocked=false;save();renderAll();});
-          ld.appendChild(lt);ld.appendChild(editBtn);
-          mRow.appendChild(mLbl);mRow.appendChild(ld);
+          const chips=document.createElement('div');chips.className='meter-chips';
+          (d.metersArr||[]).forEach(v=>{
+            const c=document.createElement('span');c.className='meter-chip';c.textContent=fmtNum(v)+' m';chips.appendChild(c);
+          });
+          if(!(d.metersArr||[]).length){const e=document.createElement('span');e.style.cssText='font-size:13px;color:var(--text3)';e.textContent='—';chips.appendChild(e);}
+          const editBtn=document.createElement('button');editBtn.className='btn btn-warning';editBtn.style.flexShrink='0';editBtn.textContent='修改';
+          editBtn.addEventListener('click',()=>{
+            showModal('確認修改米數？','確定要重新修改已確認的米數嗎？',()=>{d.metersLocked=false;save();renderAll();});
+          });
+          ld.appendChild(chips);ld.appendChild(editBtn);mHdr.appendChild(ld);
+          mSec.appendChild(mHdr);
+          const br=document.createElement('div');br.className='badge-row';
+          br.innerHTML=`<div class="badge-item"><span class="badge-lbl">趟次</span><span class="badge badge-blue">${mRes.count}</span></div><div class="badge-item"><span class="badge-lbl">米數計</span><span class="badge badge-green">${fmtNum(mRes.total)}</span></div>`;
+          mSec.appendChild(br);
         } else {
-          const mInp=document.createElement('input');mInp.type='text';mInp.inputMode='decimal';
-          mInp.className='field-input';mInp.placeholder='120 80 60';mInp.value=d.metersInput;
-          mInp.addEventListener('input',()=>{d.metersInput=mInp.value;save();renderAll();});
-          const confirmBtn=document.createElement('button');confirmBtn.className='btn btn-success';confirmBtn.textContent='確認';
-          confirmBtn.addEventListener('click',()=>{d.metersInput=mInp.value;d.metersLocked=true;save();renderAll();});
-          mRow.appendChild(mLbl);mRow.appendChild(mInp);mRow.appendChild(confirmBtn);
+          mSec.appendChild(mHdr);
+          const kps=kpState[kpk];
+
+          // chips
+          const chips=document.createElement('div');chips.className='meter-chips';
+          (d.metersArr||[]).forEach((v,i)=>{
+            const c=document.createElement('span');c.className='meter-chip';
+            c.appendChild(document.createTextNode(fmtNum(v)+' m'));
+            const del=document.createElement('button');del.className='meter-chip-del';del.textContent='×';
+            del.addEventListener('click',e=>{e.stopPropagation();d.metersArr.splice(i,1);syncMetersInput(d);save();renderAll();});
+            c.appendChild(del);chips.appendChild(c);
+          });
+          if(!(d.metersArr||[]).length){const ph=document.createElement('span');ph.style.cssText='font-size:12px;color:var(--text3)';ph.textContent='尚無米數';chips.appendChild(ph);}
+          mSec.appendChild(chips);
+
+          // current input display
+          const kpCurr=document.createElement('div');
+          kpCurr.className='kp-current'+(kps.current===''?' empty':'');
+          kpCurr.textContent=kps.current===''?'輸入數值，按 ＋ 加入':kps.current;
+          mSec.appendChild(kpCurr);
+
+          // keypad: 1-2-3 / 4-5-6 / 7-8-9 / . 0 ⌫
+          const kpad=document.createElement('div');kpad.className='meter-keypad';
+          const keys=['1','2','3','4','5','6','7','8','9','.','0','⌫'];
+          keys.forEach(k=>{
+            const b=document.createElement('button');b.className='kp-btn';
+            if(k==='⌫') b.classList.add('kp-back');
+            b.textContent=k;
+            b.addEventListener('click',()=>{
+              if(k==='⌫'){
+                kps.current=kps.current.slice(0,-1);
+              } else if(k==='.'){
+                if(!kps.current.includes('.')) kps.current+='.';
+              } else {
+                if(kps.current.length<10) kps.current+=k;
+              }
+              kpCurr.textContent=kps.current===''?'輸入數值，按 ＋ 加入':kps.current;
+              kpCurr.className='kp-current'+(kps.current===''?' empty':'');
+            });
+            kpad.appendChild(b);
+          });
+          // + add button full width
+          const addBtn=document.createElement('button');addBtn.className='kp-btn kp-add';addBtn.textContent='＋  加入';
+          addBtn.addEventListener('click',()=>{
+            const v=parseFloat(kps.current);
+            if(!kps.current||isNaN(v)||v<=0){kpCurr.style.border='1.5px solid var(--red)';setTimeout(()=>kpCurr.style.border='',1000);return;}
+            if(!d.metersArr) d.metersArr=[];
+            d.metersArr.push(v);syncMetersInput(d);kps.current='';save();renderAll();
+          });
+          kpad.appendChild(addBtn);
+          mSec.appendChild(kpad);
+
+          // badges + confirm
+          const btm=document.createElement('div');btm.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap';
+          const br=document.createElement('div');br.className='badge-row';br.style.flex='1';
+          br.innerHTML=`<div class="badge-item"><span class="badge-lbl">趟次</span><span class="badge badge-blue">${mRes.count}</span></div><div class="badge-item"><span class="badge-lbl">米數計</span><span class="badge badge-green">${fmtNum(mRes.total)}</span></div>`;
+          const confBtn=document.createElement('button');confBtn.className='btn btn-success';confBtn.textContent='確認米數';
+          confBtn.addEventListener('click',()=>{d.metersLocked=true;save();renderAll();});
+          btm.appendChild(br);btm.appendChild(confBtn);
+          mSec.appendChild(btm);
         }
-        body.appendChild(mRow);
+        body.appendChild(mSec);
 
-        // Badges
-        const badgeRow=document.createElement('div');badgeRow.className='badge-row';
-        badgeRow.innerHTML=`<div class="badge-item"><span class="badge-lbl">趟次</span><span class="badge badge-blue">${mRes.count}</span></div><div class="badge-item"><span class="badge-lbl">米數計</span><span class="badge badge-green">${mRes.total>0?mRes.total.toLocaleString():0}</span></div>`;
-        body.appendChild(badgeRow);
-
-        // Holiday btn
+        // holiday btn
         const holBtn=document.createElement('button');holBtn.className='btn btn-danger';holBtn.textContent='標記休假';
         holBtn.addEventListener('click',()=>{d.holiday=true;d.endTime='17:00';d.otInput='';d.expanded=true;save();renderAll();});
         body.appendChild(holBtn);
@@ -340,11 +633,11 @@ function renderAll(){
   });
 }
 
-// Month nav
+// ── MONTH NAV ─────────────────────────────────────────────
 document.getElementById('btnPrev').addEventListener('click',()=>{viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}renderAll();});
 document.getElementById('btnNext').addEventListener('click',()=>{viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}renderAll();});
 
-// Modal
+// ── MODAL ─────────────────────────────────────────────────
 let pendingAction=null;
 function showModal(title,desc,action){
   pendingAction=action;
@@ -356,55 +649,174 @@ document.getElementById('modalCancel').addEventListener('click',()=>{document.ge
 document.getElementById('modalConfirm').addEventListener('click',()=>{document.getElementById('confirmModal').classList.add('hidden');if(pendingAction)pendingAction();pendingAction=null;});
 document.getElementById('confirmModal').addEventListener('click',e=>{if(e.target===document.getElementById('confirmModal')){document.getElementById('confirmModal').classList.add('hidden');pendingAction=null;}});
 
-// Clear
+// ── SALARY POPUP ──────────────────────────────────────────
+document.getElementById('cardSalary').addEventListener('click',()=>document.getElementById('salaryPopup').classList.remove('hidden'));
+document.getElementById('salaryClose').addEventListener('click',()=>document.getElementById('salaryPopup').classList.add('hidden'));
+document.getElementById('salaryPopup').addEventListener('click',e=>{if(e.target===document.getElementById('salaryPopup'))document.getElementById('salaryPopup').classList.add('hidden');});
+
+// ── CLEAR ─────────────────────────────────────────────────
 document.getElementById('btnClear').addEventListener('click',()=>{
   const label=`${viewYear} 年 ${viewMonth+1} 月`;
   showModal('確認清除資料？',`此操作將永久刪除 ${label} 的所有出勤、加班及工作紀錄，且無法復原。確定要繼續嗎？`,()=>{
-    const mk=monthKey(viewYear,viewMonth);
-    delete allData[mk];
-    save();
-    renderAll();
+    const mk=monthKey(viewYear,viewMonth);delete allData[mk];save();renderAll();
   });
 });
 
-// Export Excel
+// ── EXPORT ────────────────────────────────────────────────
 document.getElementById('btnExport').addEventListener('click',()=>{
   const rows=getRows(viewYear,viewMonth);
   const wb=XLSX.utils.book_new();
   const headers=['日期','星期','上班時間','下班時間','加班費($)','趟次','米數明細','米數合計(m)','備註'];
   const data=[headers];
-  let totalPay=0,totalTrips=0,totalMeters=0,totalOTMin=0;
-
+  let tPay=0,tTrips=0,tMeters=0,tOTMin=0;
   rows.forEach(r=>{
     const d=r.data;
     if(d.holiday){data.push([fmtDate(r.dt),WD[r.wd],'—','—','—','—','—','—','休假']);return;}
     const[eh,em]=d.endTime.split(':').map(Number);
-    const pay=calcPay(eh,em);
-    const mRes=sumNums(d.metersInput);
-    totalPay+=pay;totalTrips+=mRes.count;totalMeters+=mRes.total;
-    totalOTMin+=Math.max(0,eh*60+em-17*60);
-    data.push([fmtDate(r.dt),WD[r.wd],'08:00',d.endTime,pay,mRes.count,d.metersInput,mRes.total,d.metersLocked?'已確認':'']);
+    const pay=calcPay(eh,em);const mRes=arrStats(d.metersArr);
+    tPay+=pay;tTrips+=mRes.count;tMeters+=mRes.total;tOTMin+=Math.max(0,eh*60+em-17*60);
+    data.push([fmtDate(r.dt),WD[r.wd],'08:00',d.endTime,pay,mRes.count,(d.metersArr||[]).join(' '),fmtNum(mRes.total),d.metersLocked?'已確認':'']);
   });
-
   data.push([]);
-  data.push(['合計','','','',totalPay,totalTrips,'',totalMeters,'加班時數：'+Math.floor(totalOTMin/60)+'h '+(totalOTMin%60)+'m']);
-
+  data.push(['合計','','','',tPay,tTrips,'',fmtNum(tMeters),'加班時數：'+Math.floor(tOTMin/60)+'h '+(tOTMin%60)+'m']);
+  data.push(['本月薪資','','','',BASE_SALARY+tPay,'','','','底薪36000＋加班費']);
   const ws=XLSX.utils.aoa_to_sheet(data);
   ws['!cols']=[{wch:10},{wch:6},{wch:10},{wch:10},{wch:10},{wch:6},{wch:24},{wch:12},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,`${viewYear}-${String(viewMonth+1).padStart(2,'0')}`);
   XLSX.writeFile(wb,`毅合實業工作紀錄_${viewYear}${String(viewMonth+1).padStart(2,'0')}.xlsx`);
 });
 
-// Init
+// ── DRAWERS ───────────────────────────────────────────────
+let otDY=null,otDM=null,mDY=null,mDM=null;
+
+function openDrawer(which){
+  if(which==='ot'){
+    if(otDY===null){otDY=viewYear;otDM=viewMonth;}
+    document.getElementById('otDrawer').classList.add('open');
+    document.getElementById('otOverlay').classList.add('open');
+    renderOTDrawer();
+  } else {
+    if(mDY===null){mDY=viewYear;mDM=viewMonth;}
+    document.getElementById('mDrawer').classList.add('open');
+    document.getElementById('mOverlay').classList.add('open');
+    renderMDrawer();
+  }
+}
+function closeDrawer(which){
+  if(which==='ot'){document.getElementById('otDrawer').classList.remove('open');document.getElementById('otOverlay').classList.remove('open');}
+  else{document.getElementById('mDrawer').classList.remove('open');document.getElementById('mOverlay').classList.remove('open');}
+}
+
+// stat cards open drawers
+document.getElementById('cardHours').addEventListener('click',()=>openDrawer('ot'));
+document.getElementById('cardMeters').addEventListener('click',()=>openDrawer('m'));
+
+document.getElementById('otDrawerClose').addEventListener('click',()=>closeDrawer('ot'));
+document.getElementById('mDrawerClose').addEventListener('click',()=>closeDrawer('m'));
+document.getElementById('otOverlay').addEventListener('click',()=>closeDrawer('ot'));
+document.getElementById('mOverlay').addEventListener('click',()=>closeDrawer('m'));
+
+document.getElementById('otMonthPrev').addEventListener('click',()=>{otDM--;if(otDM<0){otDM=11;otDY--;}renderOTDrawer();});
+document.getElementById('otMonthNext').addEventListener('click',()=>{otDM++;if(otDM>11){otDM=0;otDY++;}renderOTDrawer();});
+document.getElementById('mMonthPrev').addEventListener('click',()=>{mDM--;if(mDM<0){mDM=11;mDY--;}renderMDrawer();});
+document.getElementById('mMonthNext').addEventListener('click',()=>{mDM++;if(mDM>11){mDM=0;mDY++;}renderMDrawer();});
+
+document.getElementById('otDateFrom').addEventListener('input',()=>renderOTDrawer());
+document.getElementById('otDateTo').addEventListener('input',()=>renderOTDrawer());
+document.getElementById('otDateClear').addEventListener('click',()=>{document.getElementById('otDateFrom').value='';document.getElementById('otDateTo').value='';renderOTDrawer();});
+document.getElementById('mDateFrom').addEventListener('input',()=>renderMDrawer());
+document.getElementById('mDateTo').addEventListener('input',()=>renderMDrawer());
+document.getElementById('mDateClear').addEventListener('click',()=>{document.getElementById('mDateFrom').value='';document.getElementById('mDateTo').value='';renderMDrawer();});
+
+function getFilteredRows(y,m,fromD,toD,includeHoliday){
+  const rows=getRows(y,m);
+  return rows.filter(r=>{
+    if(!includeHoliday&&r.data.holiday) return false;
+    if(fromD&&r.d<fromD) return false;
+    if(toD&&r.d>toD) return false;
+    return true;
+  });
+}
+
+// ── OT DRAWER RENDER ──────────────────────────────────────
+function renderOTDrawer(){
+  document.getElementById('otMonthLabel').textContent=`${otDY}/${String(otDM+1).padStart(2,'0')}`;
+  const fromD=parseInt(document.getElementById('otDateFrom').value)||null;
+  const toD=parseInt(document.getElementById('otDateTo').value)||null;
+  const isFiltered=fromD||toD;
+
+  // ALL rows for work-day count (no holiday, no date filter)
+  const allRows=getFilteredRows(otDY,otDM,null,null,false);
+  // Filtered rows for totals/display
+  const rows=getFilteredRows(otDY,otDM,fromD,toD,false);
+
+  const body=document.getElementById('otDrawerBody');
+  body.innerHTML='';
+  let totalPay=0,totalOTMin=0,totalWorkDays=0,hasOT=false;
+
+  rows.forEach(r=>{
+    const d=r.data;
+    const[eh,em]=d.endTime.split(':').map(Number);
+    const otMin=Math.max(0,eh*60+em-17*60);
+    const pay=calcPay(eh,em);
+    totalWorkDays++;
+    if(otMin===0&&pay===0) return;
+    hasOT=true;
+    totalPay+=pay;totalOTMin+=otMin;
+    const row=document.createElement('div');row.className='detail-row';
+    row.innerHTML=`<span class="detail-date">${fmtDate(r.dt)}</span><span class="detail-wd">${WD[r.wd]}</span><span class="detail-time">${d.endTime}</span><span class="detail-ot-hrs">+${Math.floor(otMin/60)}h${otMin%60>0?String(otMin%60).padStart(2,'0')+'m':''}</span><span class="detail-pay">$${pay.toLocaleString()}</span>`;
+    body.appendChild(row);
+  });
+
+  if(!hasOT){body.innerHTML='<div class="drawer-empty">此月份無加班記錄</div>';}
+
+  const bar=document.getElementById('otTotalBar');
+  let html=`<span class="dtb-item">上班天數 <span>${totalWorkDays}</span></span><span class="dtb-item">加班費 <span>$${totalPay.toLocaleString()}</span></span><span class="dtb-item">加班時數 <span>${Math.floor(totalOTMin/60)}h ${totalOTMin%60}m</span></span>`;
+  if(isFiltered) html+=`<span class="dtb-filter-note">篩選區間</span>`;
+  bar.innerHTML=html;
+}
+
+// ── METER DRAWER RENDER ───────────────────────────────────
+function renderMDrawer(){
+  document.getElementById('mMonthLabel').textContent=`${mDY}/${String(mDM+1).padStart(2,'0')}`;
+  const fromD=parseInt(document.getElementById('mDateFrom').value)||null;
+  const toD=parseInt(document.getElementById('mDateTo').value)||null;
+  const isFiltered=fromD||toD;
+
+  const rows=getFilteredRows(mDY,mDM,fromD,toD,false);
+  const body=document.getElementById('mDrawerBody');
+  body.innerHTML='';
+  let totalTrips=0,totalMeters=0,totalWorkDays=0,hasM=false;
+
+  rows.forEach(r=>{
+    const d=r.data;
+    const mRes=arrStats(d.metersArr);
+    totalWorkDays++;
+    if(mRes.count===0) return;
+    hasM=true;totalTrips+=mRes.count;totalMeters+=mRes.total;
+    const row=document.createElement('div');row.className='detail-row';
+    const cHtml=(d.metersArr||[]).map(v=>`<span style="background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);border-radius:12px;padding:2px 7px;font-size:11px;font-family:'DM Mono',monospace;font-weight:600">${fmtNum(v)}</span>`).join(' ');
+    row.innerHTML=`<span class="detail-date">${fmtDate(r.dt)}</span><span class="detail-wd">${WD[r.wd]}</span><div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;align-items:center">${cHtml}</div><span class="detail-total">${fmtNum(mRes.total)} m</span>`;
+    body.appendChild(row);
+  });
+
+  if(!hasM){body.innerHTML='<div class="drawer-empty">此月份無米數記錄</div>';}
+
+  const bar=document.getElementById('mTotalBar');
+  let html=`<span class="dtb-item">上班天數 <span>${totalWorkDays}</span></span><span class="dtb-item">趟次 <span>${totalTrips}</span></span><span class="dtb-item">米數 <span>${fmtNum(totalMeters)} m</span></span>`;
+  if(isFiltered) html+=`<span class="dtb-filter-note">篩選區間</span>`;
+  bar.innerHTML=html;
+}
+
+// ── INIT ──────────────────────────────────────────────────
 const now=new Date();
 viewYear=now.getFullYear();viewMonth=now.getMonth();
 const mk=monthKey(viewYear,viewMonth);
 if(!allData[mk]) allData[mk]={};
 const dk=String(now.getDate());
-if(!allData[mk][dk]) allData[mk][dk]={holiday:false,otInput:'',endTime:'17:00',metersInput:'',metersLocked:false,expanded:true};
-else allData[mk][dk].expanded=true;
-save();
-renderAll();
+if(!allData[mk][dk]) allData[mk][dk]={holiday:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:true};
+else{allData[mk][dk].expanded=true;if(!allData[mk][dk].metersArr) allData[mk][dk].metersArr=parseMeters(allData[mk][dk].metersInput||'');}
+save();renderAll();
 </script>
 </body>
 </html>
