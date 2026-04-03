@@ -70,9 +70,8 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .save-status.saving{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
 
 /* TOOLBAR */
-.toolbar{display:flex;gap:8px;padding:4px 12px 8px;overflow-x:auto}
-.toolbar::-webkit-scrollbar{display:none}
-.tool-btn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:9px 15px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif}
+.toolbar{display:flex;gap:6px;padding:4px 12px 8px;flex-wrap:nowrap}
+.tool-btn{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px 4px;border-radius:10px;font-size:11.5px;font-weight:500;cursor:pointer;border:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap}
 .tool-btn:active{opacity:0.75}
 .tool-btn-export{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
 .tool-btn-clear{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
@@ -260,10 +259,10 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 </div>
 
 <div class="toolbar">
-  <button class="tool-btn tool-btn-expand" id="btnExpandAll">⬇ 展開所有</button>
-  <button class="tool-btn tool-btn-collapse" id="btnCollapseAll">⬆ 收合所有</button>
-  <button class="tool-btn tool-btn-export" id="btnExport">⬇ 匯出 Excel</button>
-  <button class="tool-btn tool-btn-clear" id="btnClear">🗑 清除本月資料</button>
+  <button class="tool-btn tool-btn-expand" id="btnExpandAll">⬇ 展開</button>
+  <button class="tool-btn tool-btn-collapse" id="btnCollapseAll">⬆ 收合</button>
+  <button class="tool-btn tool-btn-export" id="btnExport">⬇ Excel</button>
+  <button class="tool-btn tool-btn-clear" id="btnClear">🗑 清除</button>
 </div>
 
 <div class="days-list" id="daysList"></div>
@@ -390,7 +389,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 </div>
 
 <script type="module">
-const STORE_KEY='kengle_data_v4'; // bumped version for per-month migration
+const STORE_KEY='kengle_data_v4';
 const WD=['日','一','二','三','四','五','六'];
 const BASE_SALARY=36000;
 
@@ -410,7 +409,7 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
-// Per-month document references: workdata/{year_mm}
+const DOC_REF = doc(db, 'workdata', 'kengle'); // legacy ref for migration
 function monthDocRef(mk){ return doc(db, 'workdata', mk); }
 
 // ── AUTH UI ───────────────────────────────────────────────
@@ -445,11 +444,10 @@ document.getElementById('pwdInput').addEventListener('keydown', e=>{ if(e.key===
 // ── STORAGE (per-month documents) ────────────────────────
 let saveTimer=null;
 
-// Load a single month from Firestore: workdata/{year_mm}
 async function loadMonth(mk){
   try{
     const snap=await getDoc(monthDocRef(mk));
-    if(snap.exists()) return snap.data().days || {};
+    if(snap.exists()) return snap.data().days||{};
     return {};
   }catch(e){
     console.warn('Firebase loadMonth failed',mk,e);
@@ -457,38 +455,21 @@ async function loadMonth(mk){
   }
 }
 
-// Load all months from old single-doc format (migration)
-async function migrateOldData(){
-  try{
-    const oldRef=doc(db,'workdata','kengle');
-    const snap=await getDoc(oldRef);
-    if(snap.exists()&&snap.data().payload){
-      const old=JSON.parse(snap.data().payload);
-      console.log('Migrating old data...',Object.keys(old));
-      for(const mk of Object.keys(old)){
-        await setDoc(monthDocRef(mk),{days:old[mk],updatedAt:Date.now()});
-      }
-      // Delete old doc by overwriting with migration flag
-      await setDoc(oldRef,{migrated:true,migratedAt:Date.now()});
-      console.log('Migration complete');
-      return old;
-    }
-  }catch(e){
-    console.warn('Migration check failed',e);
-  }
-  return null;
-}
-
 async function loadFromCloud(){
   try{
-    // Check if old single-doc exists and migrate
-    const oldRef=doc(db,'workdata','kengle');
-    const oldSnap=await getDoc(oldRef);
+    // Migration: check if old single-doc exists
+    const oldSnap=await getDoc(DOC_REF);
     if(oldSnap.exists()&&oldSnap.data().payload){
-      const migrated=await migrateOldData();
-      if(migrated) return migrated;
+      const oldAll=JSON.parse(oldSnap.data().payload);
+      console.log('舊資料搬移中...',Object.keys(oldAll));
+      for(const mk of Object.keys(oldAll)){
+        await setDoc(monthDocRef(mk),{days:oldAll[mk],updatedAt:Date.now()});
+      }
+      await setDoc(DOC_REF,{migrated:true,migratedAt:Date.now()});
+      console.log('搬移完成');
+      return oldAll;
     }
-    // Load current month only; other months loaded on demand
+    // Normal: load current month
     const now=new Date();
     const mk=monthKey(now.getFullYear(),now.getMonth());
     const days=await loadMonth(mk);
@@ -499,9 +480,8 @@ async function loadFromCloud(){
   }
 }
 
-// Ensure month data is loaded before viewing it
 async function ensureMonthLoaded(mk){
-  if(allData[mk]) return; // already loaded
+  if(allData[mk]&&Object.keys(allData[mk]).length>0) return;
   allData[mk]=await loadMonth(mk);
 }
 
@@ -510,10 +490,8 @@ function save(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
-      // Only save the currently viewed month
       const mk=monthKey(viewYear,viewMonth);
       await setDoc(monthDocRef(mk),{days:allData[mk]||{},updatedAt:Date.now()});
-      // localStorage keeps full cache
       try{localStorage.setItem(STORE_KEY,JSON.stringify(allData));}catch(e){}
     }catch(e){
       console.warn('Firebase save failed, using localStorage',e);
