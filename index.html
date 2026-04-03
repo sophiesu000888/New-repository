@@ -12,7 +12,7 @@
 :root{
   --bg:#f5f6f8;--bg2:#ffffff;--bg3:#f0f2f5;
   --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
-  --text:#1a1d24;--text2:#5a5f70;--text3:#9fa5b5;
+  --text:#1a1d24;--text2:#1a1d24;--text3:#3d4251;
   --accent:#2563eb;--accent-dim:#eff4ff;--accent-border:#bfcfff;
   --green:#16a34a;--green-dim:#f0fdf4;--green-border:#bbf7d0;
   --amber:#b45309;--amber-dim:#fffbeb;--amber-border:#fde68a;
@@ -76,6 +76,8 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .tool-btn:active{opacity:0.75}
 .tool-btn-export{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
 .tool-btn-clear{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+.tool-btn-expand{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border)}
+.tool-btn-collapse{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
 
 /* DAYS */
 .days-list{padding:4px 12px 90px;display:flex;flex-direction:column;gap:8px}
@@ -111,7 +113,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .btn{border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;padding:10px 14px;white-space:nowrap;font-family:'Noto Sans TC',sans-serif}
 .btn:active{opacity:0.7}
 .btn-primary{background:var(--accent);color:#fff}
-.btn-success{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.btn-success{background:#16a34a;color:#fff;border:1px solid #15803d}
 .btn-warning{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
 .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
 .btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
@@ -236,10 +238,19 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
     <div class="stat-label">加班時數 <span class="tap-hint">▸ 明細</span></div>
     <div class="stat-val c-accent" id="sumHours">0h 0m</div>
   </div>
-  <!-- 總趟次 -->
-  <div class="stat-card">
-    <div class="stat-label">總趟次</div>
+  <!-- 總趟次 → 點擊開趟次抽屜 -->
+  <div class="stat-card clickable" id="cardTrips">
+    <div class="stat-label">總趟次 <span class="tap-hint">▸ 明細</span></div>
     <div class="stat-val c-green" id="sumTrips">0</div>
+    <div id="tripsProgressWrap" style="margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span id="tripsProgressLabel" style="font-size:10px;color:var(--text3);font-weight:500"></span>
+        <span id="tripsProgressStar" style="font-size:12px"></span>
+      </div>
+      <div style="background:var(--bg3);border-radius:20px;height:6px;overflow:hidden">
+        <div id="tripsProgressBar" style="height:100%;border-radius:20px;transition:width 0.4s ease;width:0%"></div>
+      </div>
+    </div>
   </div>
   <!-- 總米數 → 點擊開米數抽屜 -->
   <div class="stat-card clickable" id="cardMeters">
@@ -249,6 +260,8 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 </div>
 
 <div class="toolbar">
+  <button class="tool-btn tool-btn-expand" id="btnExpandAll">⬇ 展開所有</button>
+  <button class="tool-btn tool-btn-collapse" id="btnCollapseAll">⬆ 收合所有</button>
   <button class="tool-btn tool-btn-export" id="btnExport">⬇ 匯出 Excel</button>
   <button class="tool-btn tool-btn-clear" id="btnClear">🗑 清除本月資料</button>
 </div>
@@ -265,6 +278,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
     <div class="salary-breakdown">
       <div class="sb-row"><span class="sb-lbl">底薪</span><span class="sb-val">$36,000</span></div>
       <div class="sb-row"><span class="sb-lbl">加班費</span><span class="sb-val" id="popupOT">$0</span></div>
+      <div class="sb-row"><span class="sb-lbl">超100趟次獎金</span><span class="sb-val" id="popupMeterBonus">$0</span></div>
       <div class="sb-row sb-total"><span class="sb-lbl">合計薪資</span><span class="sb-val" id="popupTotal">$36,000</span></div>
     </div>
     <button class="salary-close" id="salaryClose">關閉</button>
@@ -342,6 +356,27 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
   </div>
   <div class="drawer-body" id="mDrawerBody"></div>
   <div class="drawer-total-bar" id="mTotalBar"></div>
+</div>
+
+<!-- Trips Drawer -->
+<div class="drawer-overlay" id="tripsOverlay"></div>
+<div class="drawer" id="tripsDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">🚗 趟次明細</div>
+    <button class="drawer-close" id="tripsDrawerClose">✕</button>
+  </div>
+  <div class="drawer-filters">
+    <div class="filter-row">
+      <span class="filter-label">月份</span>
+      <div class="drawer-month-nav">
+        <button id="tripsMonthPrev">‹</button>
+        <div class="drawer-month-label" id="tripsMonthLabel"></div>
+        <button id="tripsMonthNext">›</button>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-body" id="tripsDrawerBody"></div>
+  <div class="drawer-total-bar" id="tripsTotalBar"></div>
 </div>
 
 <!-- OT Breakdown Popup -->
@@ -536,6 +571,20 @@ function fmtDate(dt){return `${dt.getMonth()+1}/${String(dt.getDate()).padStart(
 function syncMetersInput(d){d.metersInput=(d.metersArr||[]).join(' ');}
 
 // ── SUMMARY ──────────────────────────────────────────────
+const TRIP_BONUS_THRESHOLD=100; // 累積趟次超過100趟後，超過的每趟+$150
+const TRIP_BONUS_PER_TRIP=150;
+
+function calcMeterBonus(rows){
+  // 計算當月總趟次，超過100趟的部分每趟+$150
+  let cumTrips=0;
+  rows.forEach(r=>{
+    if(r.data.holiday) return;
+    cumTrips+=(r.data.metersArr||[]).length;
+  });
+  const bonusTrips=Math.max(0, cumTrips-TRIP_BONUS_THRESHOLD);
+  return bonusTrips*TRIP_BONUS_PER_TRIP;
+}
+
 function updateSummary(rows){
   let tpay=0,totMin=0,ttrips=0,tmeters=0;
   rows.forEach(r=>{
@@ -546,14 +595,40 @@ function updateSummary(rows){
     const res=arrStats(r.data.metersArr);
     ttrips+=res.count;tmeters+=res.total;
   });
+  const meterBonus=calcMeterBonus(rows);
+  const totalSalary=BASE_SALARY+tpay+meterBonus;
   document.getElementById('sumPay').textContent='$'+tpay.toLocaleString();
-  document.getElementById('sumSalary').textContent='$'+(BASE_SALARY+tpay).toLocaleString();
+  document.getElementById('sumSalary').textContent='$'+totalSalary.toLocaleString();
   document.getElementById('sumHours').textContent=Math.floor(totMin/60)+'h '+(totMin%60)+'m';
   document.getElementById('sumTrips').textContent=ttrips;
   document.getElementById('sumMeters').textContent=fmtNum(tmeters)+' m';
+
+  // ── trips progress bar ──
+  const pct=Math.min(ttrips/TRIP_BONUS_THRESHOLD*100,100);
+  const exceeded=ttrips>TRIP_BONUS_THRESHOLD;
+  const bar=document.getElementById('tripsProgressBar');
+  const lbl=document.getElementById('tripsProgressLabel');
+  const star=document.getElementById('tripsProgressStar');
+  if(exceeded){
+    bar.style.width='100%';
+    bar.style.background='linear-gradient(90deg,#16a34a,#4ade80)';
+    lbl.textContent=`超標 +${ttrips-TRIP_BONUS_THRESHOLD} 趟　獎金 $${((ttrips-TRIP_BONUS_THRESHOLD)*TRIP_BONUS_PER_TRIP).toLocaleString()}`;
+    lbl.style.color='#15803d';
+    lbl.style.fontWeight='600';
+    star.textContent='⭐';
+  } else {
+    bar.style.width=pct+'%';
+    bar.style.background='linear-gradient(90deg,#2563eb,#60a5fa)';
+    lbl.textContent=`${ttrips} / ${TRIP_BONUS_THRESHOLD} 趟　還差 ${TRIP_BONUS_THRESHOLD-ttrips} 趟達標`;
+    lbl.style.color='var(--text3)';
+    lbl.style.fontWeight='500';
+    star.textContent=ttrips>=80?'🌟':'';
+  }
+
   // keep popup data in sync
   document.getElementById('popupOT').textContent='$'+tpay.toLocaleString();
-  document.getElementById('popupTotal').textContent='$'+(BASE_SALARY+tpay).toLocaleString();
+  document.getElementById('popupMeterBonus').textContent='$'+meterBonus.toLocaleString();
+  document.getElementById('popupTotal').textContent='$'+totalSalary.toLocaleString();
 }
 
 // ── KEYPAD STATE ──────────────────────────────────────────
@@ -571,11 +646,22 @@ function renderAll(){
   list.innerHTML='';
   const mk=monthKey(viewYear,viewMonth);
 
+  // Pre-compute per-day bonus trip counts
+  const dayBonusMap={};
+  let _cum=0;
+  rows.forEach(r=>{
+    if(r.data.holiday){dayBonusMap[r.dk]=0;return;}
+    let bonus=0;
+    (r.data.metersArr||[]).forEach(()=>{_cum++;if(_cum>TRIP_BONUS_THRESHOLD)bonus++;});
+    dayBonusMap[r.dk]=bonus;
+  });
+
   rows.forEach(r=>{
     const isToday=viewYear===todayY&&viewMonth===todayM&&r.d===todayD;
     const d=r.data;
     const payVal=d.holiday?0:(()=>{const[h,m]=d.endTime.split(':').map(Number);return calcPay(h,m);})();
     const mRes=arrStats(d.metersArr);
+    const dayBonus=dayBonusMap[r.dk]||0;
     const kpk=kpKey(r.dk,mk);
     if(!kpState[kpk]) kpState[kpk]={current:''};
 
@@ -607,13 +693,23 @@ function renderAll(){
     }
 
     const chev=document.createElement('span');chev.className='chevron'+(d.expanded?' open':'');chev.textContent='▾';hdr.appendChild(chev);
-    hdr.addEventListener('click',()=>{d.expanded=!d.expanded;save();renderAll();});
+    hdr.addEventListener('click',()=>{
+      const wasExpanded=d.expanded;
+      if(!wasExpanded){
+        // collapse all others
+        const mk2=monthKey(viewYear,viewMonth);
+        const allRows=getRows(viewYear,viewMonth);
+        allRows.forEach(rr=>{if(rr.dk!==r.dk) rr.data.expanded=false;});
+      }
+      d.expanded=!wasExpanded;save();renderAll();
+    });
     card.appendChild(hdr);
 
     // collapsed summary
     if(!d.expanded&&!d.holiday&&mRes.count>0){
       const sl=document.createElement('div');sl.className='day-summary-line';
-      sl.innerHTML=`<span class="dsb">趟次 <span>${mRes.count}</span></span><span class="dsb">米數 <span>${fmtNum(mRes.total)} m</span></span>${d.metersLocked?'<span class="badge badge-green" style="font-size:10px;padding:2px 7px">已確認</span>':''}`;
+      const bonusHtml=dayBonus>0?`<span style="margin-left:auto;font-size:11px;color:var(--green);font-weight:700">+$${(dayBonus*150).toLocaleString()}</span>`:'';
+      sl.innerHTML=`<span class="dsb">趟次 <span>${mRes.count}</span></span><span class="dsb">米數 <span>${fmtNum(mRes.total)} m</span></span>${d.metersLocked?'<span class="badge badge-green" style="font-size:10px;padding:2px 7px">已確認</span>':''}${bonusHtml}`;
       card.appendChild(sl);
     }
 
@@ -758,6 +854,17 @@ function renderAll(){
   });
 }
 
+document.getElementById('btnExpandAll').addEventListener('click',()=>{
+  const rows=getRows(viewYear,viewMonth);
+  rows.forEach(r=>{r.data.expanded=true;});
+  save();renderAll();
+});
+document.getElementById('btnCollapseAll').addEventListener('click',()=>{
+  const rows=getRows(viewYear,viewMonth);
+  rows.forEach(r=>{r.data.expanded=false;});
+  save();renderAll();
+});
+
 // ── MONTH NAV ─────────────────────────────────────────────
 document.getElementById('btnPrev').addEventListener('click',()=>{viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}renderAll();});
 document.getElementById('btnNext').addEventListener('click',()=>{viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}renderAll();});
@@ -804,7 +911,8 @@ document.getElementById('btnExport').addEventListener('click',()=>{
   });
   data.push([]);
   data.push(['合計','','','',tPay,tTrips,'',fmtNum(tMeters),'加班時數：'+Math.floor(tOTMin/60)+'h '+(tOTMin%60)+'m']);
-  data.push(['本月薪資','','','',BASE_SALARY+tPay,'','','','底薪36000＋加班費']);
+  const mBonus=calcMeterBonus(rows);
+  data.push(['本月薪資','','','',BASE_SALARY+tPay+mBonus,'','','','底薪36000＋加班費＋超百米獎金'+mBonus]);
   const ws=XLSX.utils.aoa_to_sheet(data);
   ws['!cols']=[{wch:10},{wch:6},{wch:10},{wch:10},{wch:10},{wch:6},{wch:24},{wch:12},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,`${viewYear}-${String(viewMonth+1).padStart(2,'0')}`);
@@ -812,7 +920,7 @@ document.getElementById('btnExport').addEventListener('click',()=>{
 });
 
 // ── DRAWERS ───────────────────────────────────────────────
-let otDY=null,otDM=null,mDY=null,mDM=null;
+let otDY=null,otDM=null,mDY=null,mDM=null,tripsDY=null,tripsDM=null;
 
 function openDrawer(which){
   if(which==='ot'){
@@ -820,6 +928,11 @@ function openDrawer(which){
     document.getElementById('otDrawer').classList.add('open');
     document.getElementById('otOverlay').classList.add('open');
     renderOTDrawer();
+  } else if(which==='trips'){
+    if(tripsDY===null){tripsDY=viewYear;tripsDM=viewMonth;}
+    document.getElementById('tripsDrawer').classList.add('open');
+    document.getElementById('tripsOverlay').classList.add('open');
+    renderTripsDrawer();
   } else {
     if(mDY===null){mDY=viewYear;mDM=viewMonth;}
     document.getElementById('mDrawer').classList.add('open');
@@ -829,22 +942,28 @@ function openDrawer(which){
 }
 function closeDrawer(which){
   if(which==='ot'){document.getElementById('otDrawer').classList.remove('open');document.getElementById('otOverlay').classList.remove('open');}
+  else if(which==='trips'){document.getElementById('tripsDrawer').classList.remove('open');document.getElementById('tripsOverlay').classList.remove('open');}
   else{document.getElementById('mDrawer').classList.remove('open');document.getElementById('mOverlay').classList.remove('open');}
 }
 
 // stat cards open drawers
 document.getElementById('cardHours').addEventListener('click',()=>openDrawer('ot'));
 document.getElementById('cardMeters').addEventListener('click',()=>openDrawer('m'));
+document.getElementById('cardTrips').addEventListener('click',()=>openDrawer('trips'));
 
 document.getElementById('otDrawerClose').addEventListener('click',()=>closeDrawer('ot'));
 document.getElementById('mDrawerClose').addEventListener('click',()=>closeDrawer('m'));
+document.getElementById('tripsDrawerClose').addEventListener('click',()=>closeDrawer('trips'));
 document.getElementById('otOverlay').addEventListener('click',()=>closeDrawer('ot'));
 document.getElementById('mOverlay').addEventListener('click',()=>closeDrawer('m'));
+document.getElementById('tripsOverlay').addEventListener('click',()=>closeDrawer('trips'));
 
 document.getElementById('otMonthPrev').addEventListener('click',()=>{otDM--;if(otDM<0){otDM=11;otDY--;}renderOTDrawer();});
 document.getElementById('otMonthNext').addEventListener('click',()=>{otDM++;if(otDM>11){otDM=0;otDY++;}renderOTDrawer();});
 document.getElementById('mMonthPrev').addEventListener('click',()=>{mDM--;if(mDM<0){mDM=11;mDY--;}renderMDrawer();});
 document.getElementById('mMonthNext').addEventListener('click',()=>{mDM++;if(mDM>11){mDM=0;mDY++;}renderMDrawer();});
+document.getElementById('tripsMonthPrev').addEventListener('click',()=>{tripsDM--;if(tripsDM<0){tripsDM=11;tripsDY--;}renderTripsDrawer();});
+document.getElementById('tripsMonthNext').addEventListener('click',()=>{tripsDM++;if(tripsDM>11){tripsDM=0;tripsDY++;}renderTripsDrawer();});
 
 document.getElementById('otDateFrom').addEventListener('input',()=>renderOTDrawer());
 document.getElementById('otDateTo').addEventListener('input',()=>renderOTDrawer());
@@ -931,6 +1050,97 @@ function renderMDrawer(){
   const bar=document.getElementById('mTotalBar');
   let html=`<span class="dtb-item">上班天數 <span>${totalWorkDays}</span></span><span class="dtb-item">趟次 <span>${totalTrips}</span></span><span class="dtb-item">米數 <span>${fmtNum(totalMeters)} m</span></span>`;
   if(isFiltered) html+=`<span class="dtb-filter-note">篩選區間</span>`;
+  bar.innerHTML=html;
+}
+
+// ── TRIPS DRAWER RENDER ──────────────────────────────────
+function renderTripsDrawer(){
+  document.getElementById('tripsMonthLabel').textContent=`${tripsDY}/${String(tripsDM+1).padStart(2,'0')}`;
+  const rows=getFilteredRows(tripsDY,tripsDM,null,null,false);
+  const body=document.getElementById('tripsDrawerBody');
+  body.innerHTML='';
+
+  const THRESHOLD=100; // 累積趟次達此值後，後續趟次每趟 +$150
+  let cumTrips=0;
+  let bonusTrips=0;
+  let thresholdCrossedDay=null; // 哪天第100趟達標
+  let hasAny=false;
+
+  // First pass: figure out per-day data including bonus trip counts
+  const dayItems=[];
+  rows.forEach(r=>{
+    const d=r.data;
+    const trips=d.metersArr||[];
+    if(trips.length===0) return;
+    const dayTrips=[];
+    trips.forEach(v=>{
+      cumTrips++;
+      const tripIsBonus=cumTrips>THRESHOLD; // 第101趟起才算獎勵
+      if(tripIsBonus) bonusTrips++;
+      const crossesThreshold=(cumTrips===THRESHOLD+1); // 第101趟 = 達標後第一趟
+      if(crossesThreshold&&thresholdCrossedDay===null) thresholdCrossedDay=fmtDate(r.dt);
+      dayTrips.push({v,tripIsBonus,crossesThreshold,tripNum:cumTrips});
+    });
+    dayItems.push({r,dayTrips});
+    hasAny=true;
+  });
+
+  if(!hasAny){body.innerHTML='<div class="drawer-empty">此月份無趟次記錄</div>';}
+
+  dayItems.forEach(({r,dayTrips})=>{
+    const row=document.createElement('div');
+    // Check if any bonus trips in this day
+    const hasDayBonus=dayTrips.some(t=>t.tripIsBonus);
+    const hasDayCross=dayTrips.some(t=>t.crossesThreshold);
+    row.style.cssText=`background:${hasDayBonus?'#f0fdf4':'var(--bg)'};border-radius:10px;padding:10px 12px;margin-bottom:6px;border:${hasDayCross?'1.5px solid #16a34a':'1px solid transparent'}`;
+
+    const topLine=document.createElement('div');
+    topLine.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap';
+
+    const dateSpan=document.createElement('span');
+    dateSpan.style.cssText='font-size:13px;font-weight:700;font-family:"DM Mono",monospace;color:var(--text);min-width:44px';
+    dateSpan.textContent=fmtDate(r.dt);
+
+    const wdSpan=document.createElement('span');
+    wdSpan.style.cssText='font-size:11px;color:var(--text3);min-width:12px';
+    wdSpan.textContent=WD[r.wd];
+
+    topLine.appendChild(dateSpan);
+    topLine.appendChild(wdSpan);
+
+    if(hasDayCross){
+      const badge=document.createElement('span');
+      badge.style.cssText='font-size:10px;background:#16a34a;color:#fff;padding:2px 8px;border-radius:10px;font-weight:700';
+      badge.textContent='⭐ 達標日';
+      topLine.appendChild(badge);
+    }
+
+    const tripCount=dayTrips.length;
+    const bonusCount=dayTrips.filter(t=>t.tripIsBonus).length;
+    const tripSummary=document.createElement('span');
+    tripSummary.style.cssText='margin-left:auto;font-size:12px;font-family:"DM Mono",monospace;font-weight:600;color:var(--text2)';
+    tripSummary.textContent=`${tripCount} 趟`;
+    topLine.appendChild(tripSummary);
+
+    row.appendChild(topLine);
+
+    // Day bonus summary only (no chips)
+    if(bonusCount>0){
+      const bonusLine=document.createElement('div');
+      bonusLine.style.cssText='margin-top:4px;font-size:12px;color:#15803d;font-weight:600';
+      bonusLine.textContent=`達標趟次 ${bonusCount} 趟 × $150 = $${(bonusCount*150).toLocaleString()}`;
+      row.appendChild(bonusLine);
+    }
+
+    body.appendChild(row);
+  });
+
+  // total bar
+  const totalBonus=bonusTrips*150;
+  const bar=document.getElementById('tripsTotalBar');
+  let html=`<span class="dtb-item">總趟次 <span>${cumTrips}</span></span>`;
+  if(thresholdCrossedDay) html+=`<span class="dtb-item">第101趟達標日 <span>${thresholdCrossedDay}</span></span>`;
+  if(bonusTrips>0) html+=`<span class="dtb-item" style="color:#15803d">超100趟獎金 <span style="color:#16a34a">${bonusTrips} 趟 × $150 = $${totalBonus.toLocaleString()}</span></span>`;
   bar.innerHTML=html;
 }
 
