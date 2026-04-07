@@ -897,7 +897,7 @@ function renderAll(){
           const addBtn=document.createElement('button');addBtn.className='kp-btn kp-add';addBtn.style.cssText='grid-column:span 2';addBtn.textContent='＋  加入';
           addBtn.addEventListener('click',()=>{
             const v=parseFloat(kps.current);
-            if(!kps.current||isNaN(v)||v<=0){kpCurr.style.border='1.5px solid var(--red)';setTimeout(()=>kpCurr.style.border='',1000);return;}
+            if(!kps.current === '' || isNaN(v)) {kpCurr.style.border='1.5px solid var(--red)';setTimeout(()=>kpCurr.style.border='',1000);return;}
             if(!d.metersArr) d.metersArr=[];
             d.metersArr.push(v);syncMetersInput(d);kps.current='';save();renderAll();
           });
