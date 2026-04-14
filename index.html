@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -77,6 +78,24 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .sb-total .sb-val{color:var(--accent);font-size:20px}
 .salary-close{background:var(--bg4);border:1.5px solid var(--border2);color:var(--text2);padding:10px 28px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin:0 16px}
 
+
+/* ENCOURAGE TOAST */
+.enc-toast{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.7);
+  z-index:200;pointer-events:none;opacity:0;
+  transition:opacity 0.18s ease,transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  text-align:center;
+}
+.enc-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.enc-inner{
+  background:linear-gradient(135deg,#2a3aad 0%,#4f6ef7 100%);
+  color:#fff;font-size:32px;font-weight:900;
+  padding:22px 38px;border-radius:24px;
+  box-shadow:0 8px 40px rgba(79,110,247,0.45);
+  letter-spacing:0.02em;white-space:pre;
+  font-family:'Noto Sans TC',sans-serif;
+}
+
 /* SAVE STATUS */
 .save-status{font-size:12px;padding:6px 16px;border-radius:20px;font-weight:600;transition:opacity 0.3s,transform 0.3s;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(4px);z-index:50;pointer-events:none;opacity:0;box-shadow:0 4px 16px rgba(0,0,0,0.12)}
 .save-status.show{transform:translateX(-50%) translateY(0)}
@@ -86,7 +105,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 
 /* TOOLBAR */
 .toolbar{display:flex;gap:6px;padding:4px 12px 10px;flex-wrap:nowrap}
-.tool-btn{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px 4px;border-radius:11px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid transparent;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;transition:opacity 0.12s,transform 0.1s}
+.tool-btn{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px 4px;border-radius:11px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid transparent;font-family:'Noto Sans TC',sans-serif;white-space:pre;transition:opacity 0.12s,transform 0.1s}
 .tool-btn:active{opacity:0.75;transform:scale(0.97)}
 .tool-btn-export{background:var(--green-dim);color:var(--green);border-color:var(--green-border)}
 .tool-btn-clear{background:var(--red-dim);color:var(--red);border-color:var(--red-border)}
@@ -109,7 +128,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .time-chip{font-size:12px;font-family:'DM Mono',monospace;color:var(--text2);background:var(--bg4);padding:4px 8px;border-radius:7px;border:1px solid var(--border)}
 .time-chip.ot{color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);font-weight:600}
 .arrow{font-size:10px;color:var(--text3)}
-.day-pay{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent);margin-left:auto;white-space:nowrap}
+.day-pay{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent);margin-left:auto;white-space:pre}
 .day-pay.zero{color:var(--text3);font-weight:400}
 .holiday-badge{font-size:11px;background:var(--red-dim);color:var(--red);padding:3px 8px;border-radius:7px;margin-left:auto;border:1px solid var(--red-border)}
 .chevron{font-size:12px;color:var(--text3);margin-left:4px;transition:transform 0.2s;display:inline-block}
@@ -124,7 +143,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .field-input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(79,110,247,0.1)}
 
 /* BUTTONS */
-.btn{border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;padding:10px 14px;white-space:nowrap;font-family:'Noto Sans TC',sans-serif}
+.btn{border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;padding:10px 14px;white-space:pre;font-family:'Noto Sans TC',sans-serif}
 .btn:active{opacity:0.7}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-success{background:#16a34a;color:#fff;border:1px solid #15803d}
@@ -295,6 +314,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 
 <!-- Save status toast -->
 <div class="save-status" id="saveStatus">✓ 已儲存</div>
+<div class="enc-toast" id="encToast"><div class="enc-inner" id="encText"></div></div>
 
 <!-- Salary popup -->
 <div class="salary-popup hidden" id="salaryPopup">
@@ -538,6 +558,32 @@ function save(){
     showSaveStatus('saved');
   },600);
 }
+
+const ENC_MSGS=['你很棒','GOOD JOB','做得好','很頂','夠硬','有料','猛','有點意思','給力','不簡單','狠人','強'];
+let _encTimer=null;
+function showSpecialMsg(msg){
+  const toast=document.getElementById('encToast');
+  const txt=document.getElementById('encText');
+  txt.innerHTML=msg;
+  txt.style.fontSize='18px';
+  if(_encTimer) clearTimeout(_encTimer);
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  _encTimer=setTimeout(()=>{toast.classList.remove('show');txt.style.fontSize='';},2200);
+}
+function showEncourage(){
+  const msg=ENC_MSGS[Math.floor(Math.random()*ENC_MSGS.length)];
+  const toast=document.getElementById('encToast');
+  const txt=document.getElementById('encText');
+  txt.textContent=msg;
+  if(_encTimer) clearTimeout(_encTimer);
+  toast.classList.remove('show');
+  void toast.offsetWidth; // reflow
+  toast.classList.add('show');
+  _encTimer=setTimeout(()=>toast.classList.remove('show'),900);
+}
+
 function showSaveStatus(s){
   const el=document.getElementById('saveStatus');
   el.className='save-status '+s+' show';
@@ -559,7 +605,7 @@ function getRows(y,m){
     const dt=new Date(y,m,d);
     if(dt.getMonth()!==m) break;
     const dk=String(d);
-    if(!allData[mk][dk]) allData[mk][dk]={holiday:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:false};
+    if(!allData[mk][dk]) allData[mk][dk]={holiday:false,startTime:'08:00',startInput:'',startLocked:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:false};
     if(!allData[mk][dk].metersArr) allData[mk][dk].metersArr=parseMeters(allData[mk][dk].metersInput||'');
     rows.push({d,dt,wd:dt.getDay(),isWeekend:dt.getDay()===0||dt.getDay()===6,dk,data:allData[mk][dk]});
   }
@@ -571,45 +617,74 @@ function parseMeters(str){
   return str.trim().split(/[\s,]+/).filter(v=>v!=='').map(v=>parseFloat(v)||0).filter(v=>v>0);
 }
 
+const WORK_START=8*60; // 正常上班時間 08:00（分鐘）
+const WORK_END=17*60;  // 正常下班時間 17:00（分鐘）
+
 function normalizeEndMins(h,m){
   // 若輸入時間 < 17:00，視為跨午夜（隔天）加 24h
   const raw=h*60+m;
-  return raw<17*60?raw+24*60:raw;
+  return raw<WORK_END?raw+24*60:raw;
 }
-function calcPay(h,m){
+function calcEarlyOTPay(startH,startM){
+  // 提早上班：08:00 前的分鐘數，費率同 00:00–08:00 時段 $9/min
+  if(startH===undefined||startM===undefined) return 0;
+  const startMins=startH*60+startM;
+  if(startMins>=WORK_START) return 0;
+  return Math.round((WORK_START-startMins)*9);
+}
+function calcPay(h,m,startH,startM){
   const end=normalizeEndMins(h,m);
-  if(end<=17*60) return 0;
   let t=0;
-  [{f:17*60,to:20*60,r:3.5},{f:20*60,to:24*60,r:4.5},{f:24*60,to:32*60,r:9}].forEach(s=>{
-    const a=s.f,b=Math.min(s.to,end);
-    if(b>a) t+=(b-a)*s.r;
-  });
+  // 提早上班加班費
+  t+=calcEarlyOTPay(startH,startM);
+  // 下班後加班費
+  if(end>WORK_END){
+    [{f:WORK_END,to:20*60,r:3.5},{f:20*60,to:24*60,r:4.5},{f:24*60,to:32*60,r:9}].forEach(s=>{
+      const a=s.f,b=Math.min(s.to,end);
+      if(b>a) t+=(b-a)*s.r;
+    });
+  }
   return Math.round(t);
 }
 
-function calcOTBreakdown(endTime){
+function calcOTBreakdown(endTime,startTime){
   const[h,m]=endTime.split(':').map(Number);
   const end=normalizeEndMins(h,m);
-  if(end<=17*60) return [];
-  const segs=[
-    {label:'17:00 – 20:00',f:17*60,to:20*60,rate:3.5},
-    {label:'20:00 – 00:00',f:20*60,to:24*60,rate:4.5},
-    {label:'00:00 – 08:00',f:24*60,to:32*60,rate:9}
-  ];
-  return segs.map(s=>{
-    const a=s.f,b=Math.min(s.to,end);
-    if(b<=a) return null;
-    const mins=b-a;const pay=Math.round(mins*s.rate);
-    return{label:s.label,mins,rate:s.rate,pay};
-  }).filter(Boolean);
+  const result=[];
+  // 提早上班段
+  if(startTime){
+    const[sh,sm]=startTime.split(':').map(Number);
+    const earlyMins=Math.max(0,WORK_START-(sh*60+sm));
+    if(earlyMins>0){
+      const pay=Math.round(earlyMins*9);
+      result.push({label:`${startTime} – 08:00（提早上班）`,mins:earlyMins,rate:9,pay,early:true});
+    }
+  }
+  // 下班後加班段
+  if(end>WORK_END){
+    const segs=[
+      {label:'17:00 – 20:00',f:WORK_END,to:20*60,rate:3.5},
+      {label:'20:00 – 00:00',f:20*60,to:24*60,rate:4.5},
+      {label:'00:00 – 08:00',f:24*60,to:32*60,rate:9}
+    ];
+    segs.forEach(s=>{
+      const a=s.f,b=Math.min(s.to,end);
+      if(b<=a) return;
+      const mins=b-a;const pay=Math.round(mins*s.rate);
+      result.push({label:s.label,mins,rate:s.rate,pay});
+    });
+  }
+  return result;
 }
-function showOTBreakdown(endTime,total){
-  const segs=calcOTBreakdown(endTime);
+function showOTBreakdown(endTime,total,startTime){
+  const segs=calcOTBreakdown(endTime,startTime);
   let html='<div style="display:flex;flex-direction:column;gap:8px">';
   segs.forEach(s=>{
     const hh=Math.floor(s.mins/60),mm=s.mins%60;
     const dur=hh>0?`${hh}h${mm>0?String(mm).padStart(2,'0')+'m':''}`:`${mm}m`;
-    html+=`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);padding:9px 12px;border-radius:9px"><span style="font-size:12px;color:var(--text2)">${s.label}<br><span style="font-size:11px;color:var(--text3)">${dur} × $${s.rate}/min</span></span><span style="font-size:15px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">$${s.pay.toLocaleString()}</span></div>`;
+    const bgColor=s.early?'#fff7ed':'var(--bg3)';
+    const labelColor=s.early?'#92400e':'var(--text2)';
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;background:${bgColor};padding:9px 12px;border-radius:9px;border:1px solid ${s.early?'#fcd34d':'transparent'}"><span style="font-size:12px;color:${labelColor}">${s.label}<br><span style="font-size:11px;color:var(--text3)">${dur} × $${s.rate}/min</span></span><span style="font-size:15px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">$${s.pay.toLocaleString()}</span></div>`;
   });
   html+=`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--accent-dim);border:1px solid var(--accent-border);padding:9px 12px;border-radius:9px"><span style="font-size:13px;font-weight:600;color:var(--accent)">加班費合計</span><span style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">$${total.toLocaleString()}</span></div>`;
   html+='</div>';
@@ -662,8 +737,8 @@ function updateSummary(rows){
   rows.forEach(r=>{
     if(r.data.holiday) return;
     const[eh,em]=r.data.endTime.split(':').map(Number);
-    tpay+=calcPay(eh,em);
-    totMin+=Math.max(0,normalizeEndMins(eh,em)-17*60);
+    const[sh,sm]=(r.data.startTime||'08:00').split(':').map(Number);tpay+=calcPay(eh,em,sh,sm);
+    const earlyMins=Math.max(0,WORK_START-(sh*60+sm));totMin+=Math.max(0,normalizeEndMins(eh,em)-WORK_END)+earlyMins;
     const res=arrStats(r.data.metersArr);
     ttrips+=res.count;tmeters+=res.total;
   });
@@ -731,7 +806,7 @@ function renderAll(){
   rows.forEach(r=>{
     const isToday=viewYear===todayY&&viewMonth===todayM&&r.d===todayD;
     const d=r.data;
-    const payVal=d.holiday?0:(()=>{const[h,m]=d.endTime.split(':').map(Number);return calcPay(h,m);})();
+    const payVal=d.holiday?0:(()=>{const[h,m]=d.endTime.split(':').map(Number);const[sh2,sm2]=(d.startTime||'08:00').split(':').map(Number);return calcPay(h,m,sh2,sm2);})();
     const mRes=arrStats(d.metersArr);
     const dayBonus=dayBonusMap[r.dk]||0;
     const kpk=kpKey(r.dk,mk);
@@ -753,14 +828,14 @@ function renderAll(){
       const hb=document.createElement('div');hb.className='holiday-badge';hb.textContent='休假';hdr.appendChild(hb);
     } else {
       const times=document.createElement('div');times.className='day-times';
-      const c1=document.createElement('span');c1.className='time-chip';c1.textContent='08:00';
+      const c1=document.createElement('span');c1.className='time-chip'+(d.startTime&&d.startTime!=='08:00'?' ot':'');c1.textContent=d.startTime||'08:00';
       const arr=document.createElement('span');arr.className='arrow';arr.textContent='→';
       const c2=document.createElement('span');c2.className='time-chip'+(d.endTime!=='17:00'?' ot':'');
       c2.textContent=d.endTime;
       times.appendChild(c1);times.appendChild(arr);times.appendChild(c2);hdr.appendChild(times);
       const payEl=document.createElement('div');payEl.className='day-pay'+(payVal===0?' zero':'');
       payEl.textContent=payVal>0?'$'+payVal.toLocaleString():'—';
-      if(payVal>0){payEl.style.cssText='cursor:pointer;text-decoration:underline dotted';payEl.title='查看加班費明細';payEl.addEventListener('click',e=>{e.stopPropagation();showOTBreakdown(d.endTime,payVal);});}
+      if(payVal>0){payEl.style.cssText='cursor:pointer;text-decoration:underline dotted';payEl.title='查看加班費明細';payEl.addEventListener('click',e=>{e.stopPropagation();showOTBreakdown(d.endTime,payVal,d.startTime);});}
       hdr.appendChild(payEl);
     }
 
@@ -794,6 +869,42 @@ function renderAll(){
         btn.addEventListener('click',()=>{d.holiday=false;d.expanded=true;save();renderAll();});
         body.appendChild(btn);
       } else {
+        // ── Start time row ──
+        const stRow=document.createElement('div');stRow.className='field-row';
+        const stLbl=document.createElement('div');stLbl.className='field-label';stLbl.textContent='上班時間';
+        if(!d.startTime) d.startTime='08:00';
+        if(d.startLocked){
+          const ld=document.createElement('div');ld.className='locked-row';
+          const lt=document.createElement('span');lt.className='locked-text';
+          lt.textContent=d.startTime;
+          if(d.startTime!=='08:00') lt.style.color='var(--amber)';
+          const editBtn=document.createElement('button');editBtn.className='btn btn-warning';editBtn.textContent='修改';
+          editBtn.addEventListener('click',()=>{
+            showModal('確認修改上班時間？',`目前記錄為 ${d.startTime}，確定要重新修改嗎？`,()=>{d.startLocked=false;save();renderAll();});
+          });
+          ld.appendChild(lt);ld.appendChild(editBtn);
+          stRow.appendChild(stLbl);stRow.appendChild(ld);
+        } else {
+          const stInp=document.createElement('input');stInp.type='text';stInp.inputMode='numeric';
+          stInp.className='field-input';stInp.placeholder='08:00';stInp.value=d.startInput||'';
+          stInp.addEventListener('input',()=>{d.startInput=stInp.value;save();});
+          const stBtnWrap=document.createElement('div');stBtnWrap.style.cssText='display:flex;gap:6px;flex-shrink:0';
+          const normalBtn=document.createElement('button');normalBtn.className='btn btn-ghost';normalBtn.textContent='正常';normalBtn.style.cssText='font-size:12px;padding:10px 10px';
+          normalBtn.addEventListener('click',()=>{d.startTime='08:00';d.startInput='';d.startLocked=true;save();renderAll();});
+          const earlyBtn=document.createElement('button');earlyBtn.className='btn btn-warning';earlyBtn.textContent='提早';earlyBtn.style.cssText='font-size:12px;padding:10px 10px';
+          earlyBtn.addEventListener('click',()=>{
+            const raw=stInp.value.trim();
+            const t=raw===''?nowStr():parseFmtTime(raw);
+            if(!t){stInp.style.borderColor='var(--red)';setTimeout(()=>stInp.style.borderColor='',1200);return;}
+            const[th,tm]=t.split(':').map(Number);
+            if(th*60+tm>=WORK_START){stInp.style.borderColor='var(--red)';setTimeout(()=>stInp.style.borderColor='',1200);return;}
+            d.startTime=t;d.startInput=raw;d.startLocked=true;save();renderAll();
+          });
+          stBtnWrap.appendChild(normalBtn);stBtnWrap.appendChild(earlyBtn);
+          stRow.appendChild(stLbl);stRow.appendChild(stInp);stRow.appendChild(stBtnWrap);
+        }
+        body.appendChild(stRow);
+
         // ── Clock-out row ──
         const otRow=document.createElement('div');otRow.className='field-row';
         const otLbl=document.createElement('div');otLbl.className='field-label';otLbl.textContent='下班時間';
@@ -814,7 +925,7 @@ function renderAll(){
           const btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;gap:6px;flex-shrink:0';
           const noOtBtn=document.createElement('button');noOtBtn.className='btn btn-ghost';noOtBtn.textContent='無加班';noOtBtn.style.cssText='font-size:12px;padding:10px 10px';
           noOtBtn.addEventListener('click',()=>{
-            const doIt=()=>{d.endTime='17:00';d.otInput='';d.timeLocked=true;save();renderAll();};
+            const doIt=()=>{d.endTime='17:00';d.otInput='';d.timeLocked=true;save();showEncourage();renderAll();};
             if(d.timeLocked) showModal('確認覆蓋下班時間？',`目前記錄為 ${d.endTime}，確定要改為無加班 (17:00) 嗎？`,doIt);else doIt();
           });
           const otBtn=document.createElement('button');otBtn.className='btn btn-primary';otBtn.textContent='加班';otBtn.style.cssText='font-size:12px;padding:10px 10px';
@@ -822,7 +933,7 @@ function renderAll(){
             const raw=otInp.value.trim();
             const t=raw===''?nowStr():parseFmtTime(raw);
             if(!t){otInp.style.borderColor='var(--red)';setTimeout(()=>otInp.style.borderColor='',1200);return;}
-            const doIt=()=>{d.endTime=t;d.otInput=raw;d.timeLocked=true;save();renderAll();};
+            const doIt=()=>{d.endTime=t;d.otInput=raw;d.timeLocked=true;save();showEncourage();renderAll();};
             if(d.timeLocked) showModal('確認覆蓋下班時間？',`目前記錄為 ${d.endTime}，確定要改為 ${t} 嗎？`,doIt);else doIt();
           });
           btnWrap.appendChild(noOtBtn);btnWrap.appendChild(otBtn);
@@ -917,7 +1028,7 @@ function renderAll(){
 
         // holiday btn
         const holBtn=document.createElement('button');holBtn.className='btn btn-danger';holBtn.textContent='標記休假';
-        holBtn.addEventListener('click',()=>{d.holiday=true;d.endTime='17:00';d.otInput='';d.expanded=true;save();renderAll();});
+        holBtn.addEventListener('click',()=>{d.holiday=true;d.endTime='17:00';d.otInput='';d.expanded=true;save();showSpecialMsg('休假在家<br>不要擺臉色給老婆看');renderAll();});
         body.appendChild(holBtn);
       }
       card.appendChild(body);
@@ -977,9 +1088,9 @@ document.getElementById('btnExport').addEventListener('click',()=>{
     const d=r.data;
     if(d.holiday){data.push([fmtDate(r.dt),WD[r.wd],'—','—','—','—','—','—','休假']);return;}
     const[eh,em]=d.endTime.split(':').map(Number);
-    const pay=calcPay(eh,em);const mRes=arrStats(d.metersArr);
-    tPay+=pay;tTrips+=mRes.count;tMeters+=mRes.total;tOTMin+=Math.max(0,normalizeEndMins(eh,em)-17*60);
-    data.push([fmtDate(r.dt),WD[r.wd],'08:00',d.endTime,pay,mRes.count,(d.metersArr||[]).join(' '),fmtNum(mRes.total),d.metersLocked?'已確認':'']);
+    const[sh_e,sm_e]=(d.startTime||'08:00').split(':').map(Number);const pay=calcPay(eh,em,sh_e,sm_e);const mRes=arrStats(d.metersArr);
+    tPay+=pay;tTrips+=mRes.count;tMeters+=mRes.total;const earlyE=Math.max(0,WORK_START-(sh_e*60+sm_e));tOTMin+=Math.max(0,normalizeEndMins(eh,em)-WORK_END)+earlyE;
+    data.push([fmtDate(r.dt),WD[r.wd],(d.startTime||'08:00'),d.endTime,pay,mRes.count,(d.metersArr||[]).join(' '),fmtNum(mRes.total),d.metersLocked?'已確認':'']);
   });
   data.push([]);
   data.push(['合計','','','',tPay,tTrips,'',fmtNum(tMeters),'加班時數：'+Math.floor(tOTMin/60)+'h '+(tOTMin%60)+'m']);
@@ -1147,15 +1258,18 @@ function renderOTDrawer(){
   rows.forEach(r=>{
     const d=r.data;
     const[eh,em]=d.endTime.split(':').map(Number);
+    const[sh_d,sm_d]=(d.startTime||'08:00').split(':').map(Number);
     const endM=normalizeEndMins(eh,em);
-    const otMin=Math.max(0,endM-17*60);
-    const pay=calcPay(eh,em);
+    const earlyMin=Math.max(0,WORK_START-(sh_d*60+sm_d));
+    const otMin=Math.max(0,endM-WORK_END)+earlyMin;
+    const pay=calcPay(eh,em,sh_d,sm_d);
     totalWorkDays++;
     if(otMin===0&&pay===0) return;
     hasOT=true;
     totalPay+=pay;totalOTMin+=otMin;
+    const st=d.startTime&&d.startTime!=='08:00'?`<span class="detail-time" style="color:var(--amber)">${d.startTime}↑</span>`:'';
     const row=document.createElement('div');row.className='detail-row';
-    row.innerHTML=`<span class="detail-date">${fmtDate(r.dt)}</span><span class="detail-wd">${WD[r.wd]}</span><span class="detail-time">${d.endTime}</span><span class="detail-ot-hrs">+${Math.floor(otMin/60)}h${otMin%60>0?String(otMin%60).padStart(2,'0')+'m':''}</span><span class="detail-pay">$${pay.toLocaleString()}</span>`;
+    row.innerHTML=`<span class="detail-date">${fmtDate(r.dt)}</span><span class="detail-wd">${WD[r.wd]}</span>${st}<span class="detail-time">${d.endTime}</span><span class="detail-ot-hrs">+${Math.floor(otMin/60)}h${otMin%60>0?String(otMin%60).padStart(2,'0')+'m':''}</span><span class="detail-pay">$${pay.toLocaleString()}</span>`;
     body.appendChild(row);
   });
 
@@ -1304,7 +1418,7 @@ async function initApp(){
   const mk=monthKey(viewYear,viewMonth);
   if(!allData[mk]) allData[mk]={};
   const dk=String(now.getDate());
-  if(!allData[mk][dk]) allData[mk][dk]={holiday:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:true};
+  if(!allData[mk][dk]) allData[mk][dk]={holiday:false,startTime:'08:00',startInput:'',startLocked:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:true};
   else{allData[mk][dk].expanded=true;if(!allData[mk][dk].metersArr) allData[mk][dk].metersArr=parseMeters(allData[mk][dk].metersInput||'');}
   save();renderAll();setTimeout(scrollToToday,80);
 }
