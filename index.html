@@ -1179,15 +1179,14 @@ function calcMeterBonus(rows){
 
 function updateSummary(rows){
   const now=new Date();
-  const todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
+  const todayDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   let tpay=0,totMin=0,ttrips=0,tmeters=0;
   rows.forEach(r=>{
     if(r.data.holiday) return;
-    // 未來的日期 → 完全跳過
-    const rDate=new Date(viewYear,viewMonth,r.d);
-    if(rDate>new Date(todayY,todayM,todayD)) return;
-    // 今天或過去：未實際填寫下班時間（預設17:00且未鎖定）→ 不計加班費
-    if(!r.data.timeLocked && r.data.endTime==='17:00' && !r.data.otInput) return;
+    // 未來日期：絕對跳過，不管任何狀態
+    if(new Date(viewYear,viewMonth,r.d)>todayDate) return;
+    // 未打下班卡 → 跳過
+    if(!r.data.timeLocked && !r.data.otInput) return;
     const isSunday=r.wd===0;
     const[eh,em]=r.data.endTime.split(':').map(Number);
     const[sh,sm]=(r.data.startTime||'08:00').split(':').map(Number);
@@ -1306,7 +1305,12 @@ function renderAll(){
     const isToday=viewYear===todayY&&viewMonth===todayM&&r.d===todayD;
     const d=r.data;
     const isFuture=new Date(viewYear,viewMonth,r.d)>new Date(todayY,todayM,todayD);
-    const payVal=d.holiday||isFuture?0:(!d.timeLocked&&d.endTime==='17:00'&&!d.otInput)?0:(()=>{const[h,m]=d.endTime.split(':').map(Number);const[sh2,sm2]=(d.startTime||'08:00').split(':').map(Number);return calcPay(h,m,sh2,sm2,r.wd===0);})();
+    let payVal=0;
+    if(!d.holiday && !isFuture && (d.timeLocked || d.otInput)){
+      const[h,m]=d.endTime.split(':').map(Number);
+      const[sh2,sm2]=(d.startTime||'08:00').split(':').map(Number);
+      payVal=calcPay(h,m,sh2,sm2,r.wd===0);
+    }
     const mRes=arrStats(d.metersArr);
     const dayBonus=dayBonusMap[r.dk]||0;
     const kpk=kpKey(r.dk,mk);
@@ -1762,10 +1766,16 @@ function renderOTDrawer(){
 
   const body=document.getElementById('otDrawerBody');
   body.innerHTML='';
+  const now=new Date();
+  const todayDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   let totalPay=0,totalOTMin=0,totalWorkDays=0,hasOT=false;
 
   rows.forEach(r=>{
     const d=r.data;
+    // 跳過：休假、未來日期、未打卡
+    if(d.holiday) return;
+    if(new Date(otDY,otDM,r.d)>todayDate) return;
+    if(!d.timeLocked && !d.otInput) return;
     const[eh,em]=d.endTime.split(':').map(Number);
     const[sh_d,sm_d]=(d.startTime||'08:00').split(':').map(Number);
     const endM=normalizeEndMins(eh,em);
@@ -1800,10 +1810,16 @@ function renderMDrawer(){
   const rows=getFilteredRows(mDY,mDM,fromD,toD,false);
   const body=document.getElementById('mDrawerBody');
   body.innerHTML='';
+  const now2=new Date();
+  const todayDate2=new Date(now2.getFullYear(),now2.getMonth(),now2.getDate());
   let totalTrips=0,totalMeters=0,totalWorkDays=0,hasM=false;
 
   rows.forEach(r=>{
     const d=r.data;
+    // 跳過：休假、未來日期、未打卡
+    if(d.holiday) return;
+    if(new Date(mDY,mDM,r.d)>todayDate2) return;
+    if(!d.timeLocked && !d.otInput) return;
     const mRes=arrStats(d.metersArr);
     totalWorkDays++;
     if(mRes.count===0) return;
