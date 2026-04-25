@@ -1189,10 +1189,11 @@ function renderAll(){
   // Pre-compute per-day bonus trip counts
   const dayBonusMap={};
   let _cum=0;
+  const _tripThreshold=getTripThreshold();
   rows.forEach(r=>{
     if(r.data.holiday){dayBonusMap[r.dk]=0;return;}
     let bonus=0;
-    (r.data.metersArr||[]).forEach(()=>{_cum++;if(_cum>TRIP_BONUS_THRESHOLD)bonus++;});
+    (r.data.metersArr||[]).forEach(()=>{_cum++;if(_cum>_tripThreshold)bonus++;});
     dayBonusMap[r.dk]=bonus;
   });
 
