@@ -97,6 +97,21 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
   font-family:'Noto Sans TC',sans-serif;
 }
 
+/* SCROLL TO TOP */
+.scroll-top-btn{
+  position:fixed;bottom:24px;right:14px;z-index:51;
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#2a3aad,#4f6ef7);
+  color:#fff;font-size:20px;border:none;cursor:pointer;
+  box-shadow:0 4px 16px rgba(79,110,247,0.4);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.22s,transform 0.22s;
+  transform:translateY(10px);
+}
+.scroll-top-btn.visible{opacity:1;pointer-events:auto;transform:translateY(0)}
+.scroll-top-btn:active{transform:scale(0.92)}
+
 /* SAVE STATUS */
 .save-status{font-size:12px;padding:6px 16px;border-radius:20px;font-weight:600;transition:opacity 0.3s,transform 0.3s;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(4px);z-index:50;pointer-events:none;opacity:0;box-shadow:0 4px 16px rgba(0,0,0,0.12)}
 .save-status.show{transform:translateX(-50%) translateY(0)}
@@ -338,6 +353,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 
 <!-- Save status toast -->
 <div class="save-status" id="saveStatus">✓ 已儲存</div>
+<button class="scroll-top-btn" id="scrollTopBtn" title="回到頂端">↑</button>
 <div class="enc-toast" id="encToast"><div class="enc-inner" id="encText"></div></div>
 
 <!-- Salary popup -->
@@ -643,9 +659,9 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
       </div>
     </div>
 
-    <p class="rules-note">⚠️ 修改後點「儲存規則」才會套用。規則儲存於本機，重新整理後仍有效。</p>
+    <p class="rules-note">⚠️ 修改後點「儲存規則」才會套用。規則儲存於本機，重新整理後仍有效。<br>🔴 <span style="color:#dc2626;font-weight:600">紅色數值</span>表示與預設值不同，已被修改。</p>
     <button class="rules-save-btn" id="rulesSaveBtn">💾 儲存規則並重新計算</button>
-    <button class="rules-reset-btn" id="rulesResetBtn">↺ 恢復預設值</button>
+    <button class="rules-reset-btn" id="rulesResetBtn">↺ 恢復全部預設值</button>
   </div>
 </div>
 
@@ -716,23 +732,64 @@ function rulesFromInputs(){
     ],
   };
 }
+// 規則欄位定義（id → DEFAULT_RULES 對應 key 或 meterRates index）
+const RULE_FIELDS=[
+  {id:'ruleBaseSalary',   key:'baseSalary'},
+  {id:'ruleWorkStart',    key:'workStart'},
+  {id:'ruleWorkEnd',      key:'workEnd'},
+  {id:'ruleEarlyRate',    key:'earlyRate'},
+  {id:'ruleOT1Rate',      key:'ot1Rate'},
+  {id:'ruleOT2Rate',      key:'ot2Rate'},
+  {id:'ruleOT3Rate',      key:'ot3Rate'},
+  {id:'ruleSunThreshold', key:'sunThreshold'},
+  {id:'ruleSunDaySalary', key:'sunDaySalary'},
+  {id:'ruleTripThreshold',key:'tripThreshold'},
+  {id:'ruleTripBonus1',   key:'tripBonus1'},
+  {id:'ruleTripThreshold2',key:'tripThreshold2'},
+  {id:'ruleTripBonus2',   key:'tripBonus2'},
+  {id:'ruleMeter1',       key:'meterRates',idx:0},
+  {id:'ruleMeter2',       key:'meterRates',idx:1},
+  {id:'ruleMeter3',       key:'meterRates',idx:2},
+  {id:'ruleMeter4',       key:'meterRates',idx:3},
+  {id:'ruleMeter5',       key:'meterRates',idx:4},
+];
+
+function getDefaultVal(f){
+  if(f.key==='meterRates') return DEFAULT_RULES.meterRates[f.idx];
+  return DEFAULT_RULES[f.key];
+}
+function getRuleVal(f){
+  if(f.key==='meterRates') return (RULES.meterRates||DEFAULT_RULES.meterRates)[f.idx];
+  return RULES[f.key];
+}
+function applyFieldStyle(el,currentVal,defaultVal){
+  const changed=String(currentVal)!==String(defaultVal);
+  el.style.color=changed?'#dc2626':'';
+  el.style.borderColor=changed?'#fca5a5':'';
+  el.style.background=changed?'#fff5f5':'';
+  el.style.fontWeight=changed?'700':'';
+  // label beside it
+  const row=el.closest('.rule-row');
+  if(row){
+    const lbl=row.querySelector('.rule-lbl');
+    if(lbl) lbl.style.color=changed?'#dc2626':'';
+  }
+}
+function updateFieldStyle(f){
+  const el=document.getElementById(f.id);
+  if(!el) return;
+  const defaultVal=getDefaultVal(f);
+  const currentVal=el.type==='number'?Number(el.value):el.value;
+  applyFieldStyle(el,currentVal,defaultVal);
+}
 function fillRulesInputs(){
-  document.getElementById('ruleBaseSalary').value=RULES.baseSalary;
-  document.getElementById('ruleWorkStart').value=RULES.workStart;
-  document.getElementById('ruleWorkEnd').value=RULES.workEnd;
-  document.getElementById('ruleEarlyRate').value=RULES.earlyRate;
-  document.getElementById('ruleOT1Rate').value=RULES.ot1Rate;
-  document.getElementById('ruleOT2Rate').value=RULES.ot2Rate;
-  document.getElementById('ruleOT3Rate').value=RULES.ot3Rate;
-  document.getElementById('ruleSunThreshold').value=RULES.sunThreshold;
-  document.getElementById('ruleSunDaySalary').value=RULES.sunDaySalary;
-  document.getElementById('ruleTripThreshold').value=RULES.tripThreshold;
-  document.getElementById('ruleTripBonus1').value=RULES.tripBonus1;
-  document.getElementById('ruleTripThreshold2').value=RULES.tripThreshold2;
-  document.getElementById('ruleTripBonus2').value=RULES.tripBonus2;
-  (RULES.meterRates||[]).forEach((v,i)=>{
-    const el=document.getElementById('ruleMeter'+(i+1));
-    if(el) el.value=v;
+  RULE_FIELDS.forEach(f=>{
+    const el=document.getElementById(f.id);
+    if(!el) return;
+    el.value=getRuleVal(f);
+    updateFieldStyle(f);
+    // 即時標示（移除舊的再綁新的）
+    el.oninput=()=>updateFieldStyle(f);
   });
 }
 
@@ -752,14 +809,17 @@ document.getElementById('rulesOverlay').addEventListener('click',closeRulesDrawe
 document.getElementById('rulesSaveBtn').addEventListener('click',()=>{
   RULES=rulesFromInputs();
   saveRules();
+  fillRulesInputs(); // 重新標色（儲存後比對預設值）
   closeRulesDrawer();
   showSpecialMsg('規則已儲存 ✓\n重新計算中…');
   setTimeout(()=>{const rows=getRows(viewYear,viewMonth);updateSummary(rows);},300);
 });
 document.getElementById('rulesResetBtn').addEventListener('click',()=>{
-  RULES={...DEFAULT_RULES};
+  RULES={...DEFAULT_RULES,meterRates:[...DEFAULT_RULES.meterRates]};
+  saveRules();
   fillRulesInputs();
-  showSpecialMsg('已恢復預設值');
+  showSpecialMsg('已恢復預設值 ✓');
+  setTimeout(()=>{const rows=getRows(viewYear,viewMonth);updateSummary(rows);},300);
 });
 
 // ── FIREBASE ─────────────────────────────────────────────
@@ -1105,18 +1165,29 @@ function calcTripBonusFromCount(cumTrips){
 }
 
 function calcMeterBonus(rows){
+  const now=new Date();
+  const todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
   let cumTrips=0;
   rows.forEach(r=>{
     if(r.data.holiday) return;
+    const rDate=new Date(viewYear,viewMonth,r.d);
+    if(rDate>new Date(todayY,todayM,todayD)) return;
     cumTrips+=(r.data.metersArr||[]).length;
   });
   return calcTripBonusFromCount(cumTrips);
 }
 
 function updateSummary(rows){
+  const now=new Date();
+  const todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
   let tpay=0,totMin=0,ttrips=0,tmeters=0;
   rows.forEach(r=>{
     if(r.data.holiday) return;
+    // 未來的日期 → 完全跳過
+    const rDate=new Date(viewYear,viewMonth,r.d);
+    if(rDate>new Date(todayY,todayM,todayD)) return;
+    // 今天或過去：未實際填寫下班時間（預設17:00且未鎖定）→ 不計加班費
+    if(!r.data.timeLocked && r.data.endTime==='17:00' && !r.data.otInput) return;
     const isSunday=r.wd===0;
     const[eh,em]=r.data.endTime.split(':').map(Number);
     const[sh,sm]=(r.data.startTime||'08:00').split(':').map(Number);
@@ -1175,6 +1246,40 @@ function updateSummary(rows){
 const kpState={};
 function kpKey(dk,mk){return mk+'_'+dk;}
 
+// ── AFTER TIME LOCK ───────────────────────────────────────
+// 打下班卡後：若打的是「昨天」的卡，切換到今天並展開今天的格子
+function afterTimeLock(lockedDk, lockedMk){
+  const now=new Date();
+  const todayMk=monthKey(now.getFullYear(),now.getMonth());
+  const todayDk=String(now.getDate());
+
+  // 只有在「打的是昨天的卡」時才需要切換
+  const isYesterdayCard=(lockedMk!==todayMk)||(lockedDk!==todayDk);
+  if(!isYesterdayCard) return; // 打的就是今天的卡，不需要切換
+
+  // 切換視圖到今天
+  viewYear=now.getFullYear();
+  viewMonth=now.getMonth();
+
+  // 確保今天的格子存在且展開
+  if(!allData[todayMk]) allData[todayMk]={};
+  if(!allData[todayMk][todayDk]){
+    allData[todayMk][todayDk]={
+      holiday:false,startTime:'08:00',startInput:'',startLocked:false,
+      otInput:'',endTime:'17:00',metersInput:'',metersArr:[],
+      metersLocked:false,timeLocked:false,expanded:true
+    };
+  } else {
+    allData[todayMk][todayDk].expanded=true;
+    if(!allData[todayMk][todayDk].metersArr)
+      allData[todayMk][todayDk].metersArr=parseMeters(allData[todayMk][todayDk].metersInput||'');
+  }
+
+  save();
+  renderAll();
+  setTimeout(scrollToToday, 80);
+}
+
 // ── RENDER ────────────────────────────────────────────────
 function renderAll(){
   const now=new Date();
@@ -1200,7 +1305,8 @@ function renderAll(){
   rows.forEach(r=>{
     const isToday=viewYear===todayY&&viewMonth===todayM&&r.d===todayD;
     const d=r.data;
-    const payVal=d.holiday?0:(()=>{const[h,m]=d.endTime.split(':').map(Number);const[sh2,sm2]=(d.startTime||'08:00').split(':').map(Number);return calcPay(h,m,sh2,sm2,r.wd===0);})();
+    const isFuture=new Date(viewYear,viewMonth,r.d)>new Date(todayY,todayM,todayD);
+    const payVal=d.holiday||isFuture?0:(!d.timeLocked&&d.endTime==='17:00'&&!d.otInput)?0:(()=>{const[h,m]=d.endTime.split(':').map(Number);const[sh2,sm2]=(d.startTime||'08:00').split(':').map(Number);return calcPay(h,m,sh2,sm2,r.wd===0);})();
     const mRes=arrStats(d.metersArr);
     const dayBonus=dayBonusMap[r.dk]||0;
     const kpk=kpKey(r.dk,mk);
@@ -1319,7 +1425,11 @@ function renderAll(){
           const btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;gap:6px;flex-shrink:0';
           const noOtBtn=document.createElement('button');noOtBtn.className='btn btn-ghost';noOtBtn.textContent='無加班';noOtBtn.style.cssText='font-size:12px;padding:10px 10px';
           noOtBtn.addEventListener('click',()=>{
-            const doIt=()=>{d.endTime='17:00';d.otInput='';d.timeLocked=true;save();showEncourage();renderAll();};
+            const doIt=()=>{
+              d.endTime='17:00';d.otInput='';d.timeLocked=true;
+              save();showEncourage();renderAll();
+              afterTimeLock(r.dk,mk);
+            };
             if(d.timeLocked) showModal('確認覆蓋下班時間？',`目前記錄為 ${d.endTime}，確定要改為無加班 (17:00) 嗎？`,doIt);else doIt();
           });
           const otBtn=document.createElement('button');otBtn.className='btn btn-primary';otBtn.textContent='加班';otBtn.style.cssText='font-size:12px;padding:10px 10px';
@@ -1327,7 +1437,11 @@ function renderAll(){
             const raw=otInp.value.trim();
             const t=raw===''?nowStr():parseFmtTime(raw);
             if(!t){otInp.style.borderColor='var(--red)';setTimeout(()=>otInp.style.borderColor='',1200);return;}
-            const doIt=()=>{d.endTime=t;d.otInput=raw;d.timeLocked=true;save();showEncourage();renderAll();};
+            const doIt=()=>{
+              d.endTime=t;d.otInput=raw;d.timeLocked=true;
+              save();showEncourage();renderAll();
+              afterTimeLock(r.dk,mk);
+            };
             if(d.timeLocked) showModal('確認覆蓋下班時間？',`目前記錄為 ${d.endTime}，確定要改為 ${t} 嗎？`,doIt);else doIt();
           });
           btnWrap.appendChild(noOtBtn);btnWrap.appendChild(otBtn);
@@ -1827,6 +1941,16 @@ function renderTripsDrawer(){
   bar.innerHTML=html;
 }
 
+// ── SCROLL TO TOP ─────────────────────────────────────────
+const _scrollTopBtn=document.getElementById('scrollTopBtn');
+window.addEventListener('scroll',()=>{
+  if(window.scrollY>220) _scrollTopBtn.classList.add('visible');
+  else _scrollTopBtn.classList.remove('visible');
+},{passive:true});
+_scrollTopBtn.addEventListener('click',()=>{
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
 // ── SCROLL TO TODAY ──────────────────────────────────────
 function scrollToToday(){
   const todayCard=document.querySelector('.day-card.is-today');
@@ -1837,14 +1961,50 @@ async function initApp(){
   loadRules();
   const now=new Date();
   viewYear=now.getFullYear();viewMonth=now.getMonth();
-  // Load current month (with migration if needed)
   allData=await loadFromCloud();
   const mk=monthKey(viewYear,viewMonth);
   if(!allData[mk]) allData[mk]={};
+
+  // 檢查昨天是否已打下班卡
+  const yesterday=new Date(now);
+  yesterday.setDate(yesterday.getDate()-1);
+  const yMk=monthKey(yesterday.getFullYear(),yesterday.getMonth());
+  if(!allData[yMk]) allData[yMk]={};
+  const yDk=String(yesterday.getDate());
+  const yData=allData[yMk][yDk];
+  const yesterdayLocked=yData&&yData.timeLocked===true;
+
   const dk=String(now.getDate());
-  if(!allData[mk][dk]) allData[mk][dk]={holiday:false,startTime:'08:00',startInput:'',startLocked:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:true};
-  else{allData[mk][dk].expanded=true;if(!allData[mk][dk].metersArr) allData[mk][dk].metersArr=parseMeters(allData[mk][dk].metersInput||'');}
-  save();renderAll();setTimeout(scrollToToday,80);
+
+  if(!yesterdayLocked && yData && !yData.holiday){
+    // 昨天還沒打卡 → 展開昨天，不開今天新格子
+    yData.expanded=true;
+    if(!yData.metersArr) yData.metersArr=parseMeters(yData.metersInput||'');
+    // 確保今天的格子存在（但不展開）
+    if(!allData[mk][dk]) allData[mk][dk]={holiday:false,startTime:'08:00',startInput:'',startLocked:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:false};
+    // 若昨天是上個月，切換視圖到昨天那個月
+    if(yesterday.getMonth()!==now.getMonth()){
+      viewYear=yesterday.getFullYear();
+      viewMonth=yesterday.getMonth();
+    }
+    save();renderAll();
+    setTimeout(()=>{
+      const yCard=document.querySelector('.day-card.is-today'); // is-today 跟著 viewYear/viewMonth/d 走，這裡改用 dk 查
+      // 用昨天日期找卡片
+      const allCards=document.querySelectorAll('.day-card');
+      let targetCard=null;
+      allCards.forEach(c=>{
+        const dateEl=c.querySelector('.day-date');
+        if(dateEl&&dateEl.textContent.includes(String(yesterday.getMonth()+1)+'/'+String(yesterday.getDate()).padStart(2,'0'))) targetCard=c;
+      });
+      if(targetCard) targetCard.scrollIntoView({behavior:'smooth',block:'center'});
+    },80);
+  } else {
+    // 昨天已打卡（或昨天是休假/不存在）→ 正常展開今天
+    if(!allData[mk][dk]) allData[mk][dk]={holiday:false,startTime:'08:00',startInput:'',startLocked:false,otInput:'',endTime:'17:00',metersInput:'',metersArr:[],metersLocked:false,timeLocked:false,expanded:true};
+    else{allData[mk][dk].expanded=true;if(!allData[mk][dk].metersArr) allData[mk][dk].metersArr=parseMeters(allData[mk][dk].metersInput||'');}
+    save();renderAll();setTimeout(scrollToToday,80);
+  }
 }
 
 onAuthStateChanged(auth, user=>{
