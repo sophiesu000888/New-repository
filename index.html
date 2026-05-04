@@ -298,6 +298,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
         <input id="loginPwd" type="password" placeholder="密碼" autocomplete="current-password" style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border2);font-size:15px;font-family:'DM Mono',monospace;outline:none;background:var(--bg3);color:var(--text)">
         <button id="btnLogin" style="width:100%;padding:13px;border-radius:10px;background:var(--accent);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:4px">進入</button>
         <div id="loginError" style="font-size:13px;color:var(--red);min-height:18px;text-align:center"></div>
+        <button id="btnForgotPwd" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;text-decoration:underline;padding:0">忘記密碼？</button>
       </div>
     </div>
     <!-- 註冊面板 -->
@@ -873,7 +874,7 @@ document.getElementById('rulesResetBtn').addEventListener('click',()=>{
 // ── FIREBASE ─────────────────────────────────────────────
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZlK1yptGoIAcmNuZp99sgANCUJ1crdkI",
@@ -998,6 +999,20 @@ async function tryRegister(){
 
 document.getElementById('tabLogin').addEventListener('click', ()=>switchTab('login'));
 document.getElementById('tabRegister').addEventListener('click', ()=>switchTab('register'));
+document.getElementById('btnForgotPwd').addEventListener('click', async()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const errEl = document.getElementById('loginError');
+  if(!email){ errEl.style.color='var(--amber)'; errEl.textContent='請先填入 Email，再點忘記密碼'; return; }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    errEl.style.color='var(--green)';
+    errEl.textContent='✓ 重設信已寄出，請查收信箱';
+  }catch(e){
+    errEl.style.color='var(--red)';
+    errEl.textContent = e.code==='auth/user-not-found'||e.code==='auth/invalid-email'
+      ? '❌ 找不到此 Email 的帳號' : '❌ 寄送失敗，請稍後再試';
+  }
+});
 document.getElementById('btnLogin').addEventListener('click', tryLogin);
 document.getElementById('loginPwd').addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
 document.getElementById('btnRegister').addEventListener('click', tryRegister);
