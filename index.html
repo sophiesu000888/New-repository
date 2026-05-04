@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -286,8 +287,8 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
     </div>
     <!-- Tab 切換 -->
     <div style="display:flex;border-bottom:1px solid var(--border)">
-      <button id="tabLogin" onclick="switchTab('login')" style="flex:1;padding:13px;border:none;background:var(--accent-dim);color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2px solid var(--accent)">登入</button>
-      <button id="tabRegister" onclick="switchTab('register')" style="flex:1;padding:13px;border:none;background:#fff;color:var(--text3);font-size:14px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2px solid transparent">註冊帳號</button>
+      <button id="tabLogin" style="flex:1;padding:13px;border:none;background:var(--accent-dim);color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2px solid var(--accent)">登入</button>
+      <button id="tabRegister" style="flex:1;padding:13px;border:none;background:#fff;color:var(--text3);font-size:14px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2px solid transparent">註冊帳號</button>
     </div>
     <!-- 登入面板 -->
     <div id="panelLogin" style="padding:22px 22px 20px">
@@ -994,6 +995,8 @@ async function tryRegister(){
   }
 }
 
+document.getElementById('tabLogin').addEventListener('click', ()=>switchTab('login'));
+document.getElementById('tabRegister').addEventListener('click', ()=>switchTab('register'));
 document.getElementById('btnLogin').addEventListener('click', tryLogin);
 document.getElementById('loginPwd').addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
 document.getElementById('btnRegister').addEventListener('click', tryRegister);
