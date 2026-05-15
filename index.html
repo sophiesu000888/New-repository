@@ -726,6 +726,19 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
   </div>
 </div>
 
+<!-- Network Error Modal -->
+<div class="modal-overlay hidden" id="netErrModal">
+  <div class="modal" style="text-align:center">
+    <div class="modal-icon">📡</div>
+    <h2>網路異常，無法載入資料</h2>
+    <p>目前顯示的是本機備份，<strong>請勿繼續輸入資料</strong>，否則輸入內容將無法儲存。<br><br>請確認網路連線後，點「重新整理」繼續使用。</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="netErrDismiss">我知道了</button>
+      <button class="btn btn-primary" onclick="location.reload()">重新整理</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 const WD=['日','一','二','三','四','五','六'];
 
@@ -857,6 +870,9 @@ function closeRulesDrawer(){
 document.getElementById('btnRules').addEventListener('click',openRulesDrawer);
 document.getElementById('rulesDrawerClose').addEventListener('click',closeRulesDrawer);
 document.getElementById('rulesOverlay').addEventListener('click',closeRulesDrawer);
+document.getElementById('netErrDismiss').addEventListener('click',()=>{
+  document.getElementById('netErrModal').classList.add('hidden');
+});
 document.getElementById('rulesSaveBtn').addEventListener('click',()=>{
   RULES=rulesFromInputs();
   saveRules();
@@ -1086,6 +1102,9 @@ function lsLoad(mk){
   }catch(e){ return null; }
 }
 
+// 每個月份獨立追蹤 Firebase 載入狀態，防止任何月份載入失敗時被空資料覆蓋
+const monthLoadSuccess = {};
+
 async function loadMonth(mk){
   try{
     const snap=await getDoc(monthDocRef(currentUid, mk));
@@ -1093,11 +1112,15 @@ async function loadMonth(mk){
       const days = snap.data().days||{};
       // 同步更新 localStorage 備份
       try{ localStorage.setItem(lsKey(currentUid,mk), JSON.stringify({days, savedAt: Date.now()})); }catch(e){}
+      monthLoadSuccess[mk]=true;
       return days;
     }
+    // 文件不存在（全新月份）→ 可以安全寫入
+    monthLoadSuccess[mk]=true;
     return {};
   }catch(e){
     console.warn('Firebase loadMonth failed',mk,e);
+    monthLoadSuccess[mk]=false;
     // Firebase 失敗 → fallback 到 localStorage
     const backup = lsLoad(mk);
     if(backup){
@@ -1109,15 +1132,10 @@ async function loadMonth(mk){
 }
 
 async function loadFromCloud(){
-  try{
-    const now=new Date();
-    const mk=monthKey(now.getFullYear(),now.getMonth());
-    const days=await loadMonth(mk);
-    return {[mk]:days};
-  }catch(e){
-    console.warn('Firebase load failed',e);
-    return {};
-  }
+  const now=new Date();
+  const mk=monthKey(now.getFullYear(),now.getMonth());
+  const days=await loadMonth(mk); // loadMonth 內部已設定 monthLoadSuccess[mk]
+  return {[mk]:days};
 }
 
 async function ensureMonthLoaded(mk){
@@ -1125,19 +1143,31 @@ async function ensureMonthLoaded(mk){
   allData[mk]=await loadMonth(mk);
 }
 
+function showNetErrModal(){
+  const modal=document.getElementById('netErrModal');
+  if(!modal.classList.contains('hidden')) return; // 已經顯示中，不重複彈
+  modal.classList.remove('hidden');
+}
+
 function save(){
+  const mk=monthKey(viewYear,viewMonth);
+  // 先寫 localStorage 備份（不管 Firebase 成功與否）
+  lsSave(mk);
+  // 該月份尚未成功從 Firebase 載入，禁止寫入，避免用空資料覆蓋雲端舊資料
+  if(!monthLoadSuccess[mk]){
+    showSaveStatus('error');
+    showNetErrModal();
+    console.warn('save() blocked: monthLoadSuccess['+mk+']=false');
+    return;
+  }
   showSaveStatus('saving');
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
-    const mk=monthKey(viewYear,viewMonth);
-    // 先寫 localStorage 備份（不管 Firebase 成功與否）
-    lsSave(mk);
     try{
       await setDoc(monthDocRef(currentUid, mk),{days:allData[mk]||{},updatedAt:Date.now()});
       showSaveStatus('saved');
     }catch(e){
       console.warn('Firebase save failed',e);
-      // Firebase 失敗 → localStorage 備份已存，顯示錯誤提示
       showSaveStatus('error');
     }
   },600);
