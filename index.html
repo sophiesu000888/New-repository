@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -120,6 +121,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'N
 .save-status.show{opacity:1}
 .save-status.saved{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
 .save-status.saving{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+.save-status.error{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
 
 /* TOOLBAR */
 .toolbar{display:flex;gap:6px;padding:4px 12px 10px;flex-wrap:nowrap}
@@ -1064,13 +1066,44 @@ document.getElementById('editNameInput').addEventListener('keydown', e=>{
 // ── STORAGE (per-user, per-month) ─────────────────────────
 let saveTimer=null;
 
+// ── LOCALSTORAGE 備份 ─────────────────────────────────────
+function lsKey(uid, mk){ return `backup_${uid}_${mk}`; }
+
+function lsSave(mk){
+  try{
+    const key = lsKey(currentUid, mk);
+    localStorage.setItem(key, JSON.stringify({days: allData[mk]||{}, savedAt: Date.now()}));
+  }catch(e){ console.warn('localStorage backup failed', e); }
+}
+
+function lsLoad(mk){
+  try{
+    const key = lsKey(currentUid, mk);
+    const raw = localStorage.getItem(key);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed.days||null;
+  }catch(e){ return null; }
+}
+
 async function loadMonth(mk){
   try{
     const snap=await getDoc(monthDocRef(currentUid, mk));
-    if(snap.exists()) return snap.data().days||{};
+    if(snap.exists()){
+      const days = snap.data().days||{};
+      // 同步更新 localStorage 備份
+      try{ localStorage.setItem(lsKey(currentUid,mk), JSON.stringify({days, savedAt: Date.now()})); }catch(e){}
+      return days;
+    }
     return {};
   }catch(e){
     console.warn('Firebase loadMonth failed',mk,e);
+    // Firebase 失敗 → fallback 到 localStorage
+    const backup = lsLoad(mk);
+    if(backup){
+      console.info('Loaded from localStorage backup', mk);
+      return backup;
+    }
     return {};
   }
 }
@@ -1096,13 +1129,17 @@ function save(){
   showSaveStatus('saving');
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
+    const mk=monthKey(viewYear,viewMonth);
+    // 先寫 localStorage 備份（不管 Firebase 成功與否）
+    lsSave(mk);
     try{
-      const mk=monthKey(viewYear,viewMonth);
       await setDoc(monthDocRef(currentUid, mk),{days:allData[mk]||{},updatedAt:Date.now()});
+      showSaveStatus('saved');
     }catch(e){
       console.warn('Firebase save failed',e);
+      // Firebase 失敗 → localStorage 備份已存，顯示錯誤提示
+      showSaveStatus('error');
     }
-    showSaveStatus('saved');
   },600);
 }
 
@@ -1134,8 +1171,9 @@ function showEncourage(){
 function showSaveStatus(s){
   const el=document.getElementById('saveStatus');
   el.className='save-status '+s+' show';
-  el.textContent=s==='saving'?'儲存中…':'✓ 已儲存';
+  el.textContent=s==='saving'?'儲存中…':s==='error'?'⚠️ 儲存失敗，請確認網路':'✓ 已儲存';
   if(s==='saved') setTimeout(()=>el.classList.remove('show'),1800);
+  if(s==='error') setTimeout(()=>el.classList.remove('show'),4000);
 }
 
 let allData={};
